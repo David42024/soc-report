@@ -1,0 +1,34 @@
+Diagnóstico Langflow 500 Groq rechazó la solicitud (HTTP 400)
+test_groq_and_forced_gemini_fallback_in_langflow (live_soc.LiveSocTests.test_groq_and_forced_gemini_fallback_in_langflow) ... 
+  test_groq_and_forced_gemini_fallback_in_langflow (live_soc.LiveSocTests.test_groq_and_forced_gemini_fallback_in_langflow) (provider='Groq') ... ERROR
+Diagnóstico Langflow 500 Gemini no respondió a la solicitud
+  test_groq_and_forced_gemini_fallback_in_langflow (live_soc.LiveSocTests.test_groq_and_forced_gemini_fallback_in_langflow) (provider='Gemini') ... ERROR
+
+======================================================================
+ERROR: test_groq_and_forced_gemini_fallback_in_langflow (live_soc.LiveSocTests.test_groq_and_forced_gemini_fallback_in_langflow) (provider='Groq')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\USERJSSV\Downloads\soc-report-router\tests\live_soc.py", line 168, in test_groq_and_forced_gemini_fallback_in_langflow
+    response.raise_for_status()
+  File "<stdin>", line 17, in status
+  File "C:\Users\USERJSSV\Downloads\soc-report-router\.venv\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Server error '500 Internal Server Error' for url 'http://127.0.0.1:7861/api/v1/run/ecffe1b2-7b25-4946-8bb6-30024204c6ca'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+
+======================================================================
+ERROR: test_groq_and_forced_gemini_fallback_in_langflow (live_soc.LiveSocTests.test_groq_and_forced_gemini_fallback_in_langflow) (provider='Gemini')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\USERJSSV\Downloads\soc-report-router\tests\live_soc.py", line 168, in test_groq_and_forced_gemini_fallback_in_langflow
+    response.raise_for_status()
+  File "<stdin>", line 17, in status
+  File "C:\Users\USERJSSV\Downloads\soc-report-router\.venv\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Server error '500 Internal Server Error' for url 'http://127.0.0.1:7861/api/v1/run/ecffe1b2-7b25-4946-8bb6-30024204c6ca'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+
+----------------------------------------------------------------------
+Ran 1 test in 94.922s
+
+FAILED (errors=2)

@@ -1,0 +1,21 @@
+{
+  "equipos": {
+    "phishing": "Seguridad de correo",
+    "malware": "Respuesta a incidentes",
+    "acceso_no_autorizado": "Identidades y accesos",
+    "ddos": "Redes e infraestructura",
+    "fuga_datos": "Respuesta a incidentes",
+    "vulnerabilidad": "Gestión de vulnerabilidades",
+    "uso_indebido": "Triaje SOC",
+    "incidente_fisico": "Seguridad física",
+    "fraude": "Triaje SOC",
+    "otro": "Triaje SOC"
+  },
+  "equipo_revision": "Triaje SOC",
+  "sla": {
+    "critica": {"respuesta_min": 15, "resolucion_min": 240},
+    "alta": {"respuesta_min": 60, "resolucion_min": 480},
+    "media": {"respuesta_min": 240, "resolucion_min": 1440},
+    "baja": {"respuesta_min": 480, "resolucion_min": 2880}
+  }
+}

@@ -1,0 +1,9 @@
+test_cloud_report_persists_routes_and_tracks_sla (live_soc.LiveSocTests.test_cloud_report_persists_routes_and_tracks_sla) ... ok
+test_groq_classifies_in_langflow (live_soc.LiveSocTests.test_groq_classifies_in_langflow) ... ok
+test_stack_health_and_frontend_assets (live_soc.LiveSocTests.test_stack_health_and_frontend_assets) ... ok
+test_suspicious_report_routes_to_triage (live_soc.LiveSocTests.test_suspicious_report_routes_to_triage) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 14.453s
+
+OK

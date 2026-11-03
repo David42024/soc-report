@@ -1,0 +1,54 @@
+name: soc-router
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${SOC_PG_USER}
+      POSTGRES_PASSWORD: ${SOC_PG_PASSWORD}
+      POSTGRES_DB: ${SOC_PG_DATABASE}
+    ports: ["127.0.0.1:5434:5432"]
+    volumes: ["./.venv/soc-runtime/pg16:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${SOC_REDIS_PASSWORD}"]
+    ports: ["127.0.0.1:6380:6379"]
+    volumes: ["./.venv/soc-runtime/redis:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH='$$SOC_REDIS_PASSWORD' redis-cli ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      SOC_REDIS_PASSWORD: ${SOC_REDIS_PASSWORD}
+    restart: unless-stopped
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.109.2
+    ports: ["127.0.0.1:5680:5678"]
+    environment:
+      N8N_LISTEN_ADDRESS: 0.0.0.0
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://127.0.0.1:5680/
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      EXECUTIONS_DATA_SAVE_ON_ERROR: none
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      GENERIC_TIMEZONE: America/Lima
+    volumes: ["./.venv/soc-runtime/n8n-docker:/home/node/.n8n"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5678/healthz/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped

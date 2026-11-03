@@ -1,0 +1,4 @@
+Estudios, observaciones y líneas base reales: (0, 0, 0)
+Caso previo conservado: True | Revisión registrada: True | Respaldos automáticos: 1
+Cifrado TOTP configurado: True
+Estado de la pila durante el arranque: degradado {'fastapi': 'ok', 'postgresql': 'ok', 'redis': 'ok', 'langflow': 'error', 'n8n': 'ok'}

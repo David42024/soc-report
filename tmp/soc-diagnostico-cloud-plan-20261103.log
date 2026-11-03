@@ -1,0 +1,5 @@
+Groq ok 0.6 s
+Gemini HTTP 429 RESOURCE_EXHAUSTED 1.0 s
+HTTP: 429
+Tipo de cuota: GenerateRequestsPerDayPerProjectPerModel-FreeTier
+Reintento indicado: 40839s

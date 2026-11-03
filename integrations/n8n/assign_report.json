@@ -1,0 +1,147 @@
+{
+  "name": "SOC · Asignar reporte y notificar",
+  "nodes": [
+    {
+      "name": "Reporte clasificado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "id": "ad8d781a-22c1-5ba9-bddd-61219b610885",
+      "position": [
+        0,
+        280
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "soc-assign-report",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "a5ef6c2a-5017-5374-a1c2-1d5aae072975"
+    },
+    {
+      "name": "Obtener contexto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "9912a40f-0929-528b-b4ba-7d8693ef08b2",
+      "position": [
+        240,
+        280
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://host.docker.internal:8000/internal/reportes/' + encodeURIComponent($json.body.report_id) + '/contexto' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000
+        }
+      }
+    },
+    {
+      "name": "Aplicar reglas y SLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "9b1ac0b9-ae5e-559f-ad7d-a009a89ac562",
+      "position": [
+        480,
+        280
+      ],
+      "parameters": {
+        "jsCode": "const { report_id, tipo, severidad, revision, reglas } = $input.first().json;\nconst responsable = revision ? reglas.equipo_revision : reglas.equipos[tipo];\nconst sla = reglas.sla[severidad];\nif (!responsable || !sla) throw new Error('No existe una regla para el reporte.');\nreturn [{ json: { report_id, asignacion: { responsable, ...sla } } }];"
+      }
+    },
+    {
+      "name": "Guardar asignación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "0cc2925a-88ad-5c62-8bc3-e62cccf7125b",
+      "position": [
+        720,
+        280
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'http://host.docker.internal:8000/internal/reportes/' + $json.report_id + '/asignacion' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.asignacion) }}"
+      }
+    },
+    {
+      "name": "Registrar notificación interna",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "20392938-c685-5f66-9341-b139a7afd2b1",
+      "position": [
+        960,
+        280
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'http://host.docker.internal:8000/internal/reportes/' + $json.report_id + '/notificacion' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Reporte clasificado": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener contexto": {
+      "main": [
+        [
+          {
+            "node": "Aplicar reglas y SLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar reglas y SLA": {
+      "main": [
+        [
+          {
+            "node": "Guardar asignación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar asignación": {
+      "main": [
+        [
+          {
+            "node": "Registrar notificación interna",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {}
+}
