@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { downloadFile, request, type Report, type User } from "./api";
 import { translate } from "./i18n";
 import { TotpPanel } from "./TotpPanel";
+import { Badge, DataTable, EmptyState, LoadingBlock, type Tone } from "./ui";
 
 interface Props { token: string; language: string; onError: (error: unknown) => void }
 interface Asset { id: string; nombre: string; descripcion: string; activo: number }
@@ -34,8 +35,7 @@ export function ProfilePanel({ token, language, onError, onChanged, user }: Prop
     } catch (error) { onError(error); }
     finally { setBusy(false); }
   }
-  return <section className="panel narrow">
-    <h2>{s("Mi perfil", "My profile")}</h2>
+  return <section className="panel narrow" aria-labelledby="module-title">
     <p>{user.username} · {user.role}</p>
     <form className="next" onSubmit={change}>
       <h3>{s("Cambiar contraseña", "Change password")}</h3>
@@ -49,17 +49,9 @@ export function ProfilePanel({ token, language, onError, onChanged, user }: Prop
   </section>;
 }
 
-export function OperationsPanel(props: Props & { section: Section; setSection: (value: Section) => void; canWrite: boolean; admin: boolean; openReport: (id: string) => void }) {
-  const { section, setSection, language, canWrite, admin } = props;
-  const s = (es: string, en: string) => language === "es" ? es : en;
-  const sections: [Section, string][] = [["notificaciones", s("Notificaciones", "Notifications")], ["activos", s("Activos", "Assets")], ["equipos", s("Equipos", "Teams")], ["salud", s("Salud", "Health")]];
-  if (canWrite) sections.push(["revision", s("Revisión humana", "Human review")]);
-  if (admin) sections.push(["reglas", s("Reglas y SLA", "Rules and SLA")]);
-  return <section className="panel">
-    <h2>{s("Operaciones SOC", "SOC operations")}</h2>
-    <nav className="views next" aria-label={s("Módulos operativos", "Operational modules")}>
-      {sections.map(([key, title]) => <button key={key} aria-pressed={key === section} onClick={() => setSection(key)}>{title}</button>)}
-    </nav>
+export function OperationsPanel(props: Props & { section: Section; canWrite: boolean; admin: boolean; openReport: (id: string) => void; onNotificationsChanged: () => void }) {
+  const { section, canWrite, admin } = props;
+  return <section className="panel" aria-labelledby="module-title">
     {section === "activos" && <AssetsPanel {...props} />}
     {section === "equipos" && <TeamsPanel {...props} />}
     {section === "revision" && canWrite && <ReviewPanel {...props} />}
@@ -96,10 +88,12 @@ function AssetsPanel(props: Props & { canWrite: boolean }) {
   const s = (es: string, en: string) => language === "es" ? es : en;
   const { data, busy, save } = useModule<Asset[]>("/api/activos", props);
   const [editing, setEditing] = useState<Asset>();
-  return <div><h3>{s("Catálogo de activos", "Asset catalog")}</h3>
-    <div className="table-scroll"><table><thead><tr><th>{s("Nombre", "Name")}</th><th>{s("Descripción", "Description")}</th><th>{s("Estado", "Status")}</th>{canWrite && <th>{s("Acción", "Action")}</th>}</tr></thead>
-      <tbody>{data?.map(item => <tr key={item.id}><td>{item.nombre}</td><td>{item.descripcion}</td><td>{item.activo ? s("Activo", "Active") : s("Inactivo", "Inactive")}</td>
-        {canWrite && <td><button className="secondary" onClick={() => setEditing(item)}>{s("Editar", "Edit")}</button></td>}</tr>)}</tbody></table></div>
+  return <div>
+    {busy && !data && <LoadingBlock label={s("Cargando activos…", "Loading assets…")} />}
+    {data?.length === 0 && <p className="empty next">{s("No hay activos registrados.", "No assets are registered.")}</p>}
+    <DataTable label={s("Activos registrados", "Registered assets")}><table><thead><tr><th>{s("Nombre", "Name")}</th><th>{s("Descripción", "Description")}</th><th>{s("Estado", "Status")}</th>{canWrite && <th>{s("Acción", "Action")}</th>}</tr></thead>
+      <tbody>{data?.map(item => <tr key={item.id}><td>{item.nombre}</td><td>{item.descripcion}</td><td><Badge tone={item.activo ? "success" : "neutral"}>{item.activo ? s("Activo", "Active") : s("Inactivo", "Inactive")}</Badge></td>
+        {canWrite && <td><button className="secondary" onClick={() => setEditing(item)}>{s("Editar", "Edit")}</button></td>}</tr>)}</tbody></table></DataTable>
     {canWrite && <form key={editing?.id || "new"} className="report-filters" onSubmit={async event => {
       event.preventDefault();
       const form = event.currentTarget;
@@ -122,13 +116,15 @@ function TeamsPanel(props: Props & { admin: boolean }) {
   const s = (es: string, en: string) => language === "es" ? es : en;
   const { data, busy, save } = useModule<Team[]>("/api/equipos", props);
   const [editing, setEditing] = useState<Team>();
-  return <div><h3>{s("Equipos y carga actual", "Teams and current workload")}</h3>
+  return <div>
     <p className="hint">{s("La disponibilidad es informativa. Las asignaciones se deciden con la versión de reglas vigente al recibir cada caso.", "Availability is informational. Assignments follow the policy in effect when each case was received.")}</p>
-    <div className="table-scroll"><table><thead><tr><th>{s("Equipo", "Team")}</th><th>{s("Responsable o contacto", "Owner or contact")}</th>
+    {busy && !data && <LoadingBlock label={s("Cargando equipos…", "Loading teams…")} />}
+    {data?.length === 0 && <p className="empty next">{s("No hay equipos registrados.", "No teams are registered.")}</p>}
+    <DataTable label={s("Equipos registrados", "Registered teams")}><table><thead><tr><th>{s("Equipo", "Team")}</th><th>{s("Responsable o contacto", "Owner or contact")}</th>
       <th>{s("Disponibilidad", "Availability")}</th><th>{s("Casos abiertos", "Open cases")}</th>{admin && <th>{s("Acción", "Action")}</th>}</tr></thead>
       <tbody>{data?.map(item => <tr key={item.nombre}><td>{item.nombre}</td><td>{item.contacto || "—"}</td>
-        <td>{item.disponible === null ? "—" : item.disponible ? s("Disponible", "Available") : s("No disponible", "Unavailable")}</td><td>{item.abiertos}</td>
-        {admin && <td><button className="secondary" onClick={() => setEditing(item)}>{s("Editar", "Edit")}</button></td>}</tr>)}</tbody></table></div>
+        <td>{item.disponible === null ? "—" : <Badge tone={item.disponible ? "success" : "warning"}>{item.disponible ? s("Disponible", "Available") : s("No disponible", "Unavailable")}</Badge>}</td><td>{item.abiertos}</td>
+        {admin && <td><button className="secondary" onClick={() => setEditing(item)}>{s("Editar", "Edit")}</button></td>}</tr>)}</tbody></table></DataTable>
     {admin && <form key={editing?.nombre || "new"} className="report-filters" onSubmit={async event => {
       event.preventDefault();
       const form = event.currentTarget;
@@ -177,9 +173,10 @@ function ReviewPanel(props: Props) {
   const { language } = props;
   const s = (es: string, en: string) => language === "es" ? es : en;
   const { data, busy, load, save } = useModule<ReviewReport[]>("/api/revision", props);
-  return <div><div className="list-toolbar"><h3>{s("Cola de revisión humana", "Human review queue")}</h3>
+  return <div><div className="list-toolbar">
     <button type="button" className="secondary" disabled={busy} onClick={load}>{s("Actualizar", "Refresh")}</button></div>
-    {data?.length === 0 && <p>{s("No hay casos en revisión.", "No cases pending review.")}</p>}
+    {busy && !data && <LoadingBlock label={s("Cargando casos…", "Loading cases…")} />}
+    {data?.length === 0 && <EmptyState>{s("No hay casos en revisión.", "No cases pending review.")}</EmptyState>}
     {data?.map(report => <details key={report.id} className="sla"><summary>{report.titulo}</summary>
       <p className="description">{report.descripcion}</p><p className="hint">{report.motivo_revision}</p>
       <ReviewForm report={report} language={language} disabled={busy} onSave={body => save("/api/reportes/" + report.id + "/revision", "PUT", body)} />
@@ -187,19 +184,20 @@ function ReviewPanel(props: Props) {
   </div>;
 }
 
-function NotificationsPanel(props: Props & { openReport: (id: string) => void }) {
+function NotificationsPanel(props: Props & { openReport: (id: string) => void; onNotificationsChanged: () => void }) {
   const { language, openReport } = props;
   const s = (es: string, en: string) => language === "es" ? es : en;
   const { data, busy, load, save } = useModule<Notice[]>("/api/notificaciones", props);
-  return <div><div className="list-toolbar"><h3>{s("Centro de notificaciones", "Notification center")}</h3>
+  return <div><div className="list-toolbar">
     <button type="button" className="secondary" disabled={busy} onClick={load}>{s("Actualizar", "Refresh")}</button></div>
-    {data?.length === 0 && <p>{s("Todavía no hay notificaciones.", "There are no notifications yet.")}</p>}
-    <div className="report-list">{data?.map(item => <article className="report" key={item.report_id}>
+    {busy && !data && <LoadingBlock label={s("Cargando notificaciones…", "Loading notifications…")} />}
+    {data?.length === 0 && <EmptyState>{s("Todavía no hay notificaciones.", "There are no notifications yet.")}</EmptyState>}
+    <div className="report-list">{data?.map(item => <article className="report" data-tone={item.read_at ? "neutral" : "info"} key={item.report_id}>
       <h4>{item.titulo}</h4><p>{item.responsable} · {new Date(item.ocurrido_at).toLocaleString(language)}</p>
       <div className="report-footer">
         <button type="button" className="secondary" onClick={() => openReport(item.report_id)}>{s("Ver reporte", "View report")}</button>
-        {item.read_at ? <span className="hint">{s("Leída", "Read")}</span> : <button type="button" disabled={busy}
-          onClick={() => save("/api/notificaciones/" + item.report_id + "/leida", "PUT")}>{s("Marcar leída", "Mark read")}</button>}
+        {item.read_at ? <Badge tone="success" icon="check">{s("Leída", "Read")}</Badge> : <button type="button" disabled={busy}
+          onClick={async () => { if (await save("/api/notificaciones/" + item.report_id + "/leida", "PUT")) props.onNotificationsChanged(); }}>{s("Marcar leída", "Mark read")}</button>}
       </div>
     </article>)}</div>
   </div>;
@@ -216,7 +214,6 @@ function RulesPanel(props: Props) {
   if (!version || !data || !teams) return <p role="status">{s("Cargando reglas…", "Loading rules…")}</p>;
   const options = teams.map(team => <option key={team.nombre}>{team.nombre}</option>);
   return <div>
-    <h3>{s("Reglas de asignación y SLA", "Assignment and SLA rules")}</h3>
     <p className="hint">{s("Publicar crea una versión para nuevos reportes. El historial permite cargar versiones anteriores como borrador.", "Publishing creates a version for new reports. History can load an older version as a draft.")}</p>
     <form key={version.id || "default"} onSubmit={async event => {
       event.preventDefault();
@@ -263,21 +260,29 @@ function HealthPanel(props: Props & { admin: boolean }) {
   const s = (es: string, en: string) => language === "es" ? es : en;
   const { data, busy, load } = useModule<Health>("/health?detalle=true", { ...props, token: "" });
   const [checking, setChecking] = useState(false);
+  const [checkedAt, setCheckedAt] = useState<Date>();
+  useEffect(() => { if (data) setCheckedAt(new Date()); }, [data]);
+  const statusTone = (status: string): Tone => status === "ok" ? "success" : status === "error" ? "danger" : "neutral";
   async function checkCloud() {
     setChecking(true);
     try { await request("/api/salud/proveedores", token, { method: "POST" }); await load(); }
     catch (error) { onError(error); }
     finally { setChecking(false); }
   }
-  return <div><div className="list-toolbar"><h3>{s("Salud de servicios", "Service health")}</h3>
+  return <div><div className="list-toolbar">
     <button disabled={busy} onClick={load}>{s("Comprobar", "Check")}</button></div>
-    {data && <ul>{Object.entries(data.servicios).map(([name, status]) => <li key={name}>{name} · {status}</li>)}</ul>}
+    {busy && !data && <LoadingBlock label={s("Comprobando servicios…", "Checking services…")} />}
+    {data && <div className="health-cards">{Object.entries(data.servicios).map(([name, status]) => <article className="health-card" key={name}>
+      <h4>{name}</h4><Badge tone={statusTone(status)} icon={status === "ok" ? "check" : "info"}>{status}</Badge>
+      {checkedAt && <p className="hint">{s("Consulta", "Checked")} · {checkedAt.toLocaleString(language)}</p>}
+    </article>)}</div>}
     <h4>{s("Proveedores cloud", "Cloud providers")}</h4>
-    {data?.proveedores && <ul>{Object.entries(data.proveedores).map(([name, check]) => <li key={name}>
-      {name} · {check.estado}{check.verificado_at && ` · ${new Date(check.verificado_at).toLocaleString(language)}`}
-      {check.motivo && ` · ${check.motivo}`}
-      {check.verificado_at && !check.vigente && ` · ${s("resultado anterior", "stale result")}`}
-    </li>)}</ul>}
+    {data?.proveedores && <div className="health-cards">{Object.entries(data.proveedores).map(([name, check]) => <article className="health-card" key={name}>
+      <h4>{name}</h4><Badge tone={statusTone(check.estado)} icon={check.estado === "ok" ? "check" : "info"}>{check.estado}</Badge>
+      {check.verificado_at && <p className="hint">{new Date(check.verificado_at).toLocaleString(language)}</p>}
+      {check.motivo && <p className="hint">{check.motivo}</p>}
+      {check.verificado_at && !check.vigente && <Badge tone="warning">{s("resultado anterior", "stale result")}</Badge>}
+    </article>)}</div>}
     {admin && <button disabled={checking} onClick={checkCloud}>{s("Probar Groq y Gemini", "Check Groq and Gemini")}</button>}
   </div>;
 }

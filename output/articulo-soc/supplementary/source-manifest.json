@@ -1,0 +1,14 @@
+{
+  "backend/main.py": "53fda6e51926a26ae0f727522b4a9fdbad3dccff3e5c2a16cbf8c535b9c9d8ac",
+  "backend/classifier.py": "639fc66a573deff8544452c9fe679de21cad669e1c21dfdf7dbdfdad292d133c",
+  "backend/db.py": "2124f00973629007ca03f4681ae810de66e701f01a10ad1234da3dc48bb06894",
+  "backend/runtime.py": "dc0281dd01cc73387989916ef2b0e6dcbd7a0d238691939d929a34eae1d3f7d6",
+  "backend/impact_study.py": "6ebf6ae3fa83f90959ed98daca7ba19f22662bb660fec5c3a892c3106cc69cf0",
+  "backend/security.py": "df4bda7bb642ecdbc01310adbb58f1cd4fe73de7222ba79d3326f1c432881080",
+  "db/schema.sql": "e2f38cf6f34c501a0a5fd862acfe726085838d91fb953acafa55c880dbe8cfa4",
+  "integrations/reglas.json": "8345e11e909d820cc47ec20e303dfbe42fe17f87923f71360c35d4c79f8d11dc",
+  "integrations/langflow/cloud_classifier_model.py": "bd67eb432b02dcdab52821172a3c9ea3e24ff26b90a5a5b07e5c77a9795385f9",
+  "integrations/n8n/assign_report.json": "78761120fcf611cffcfef261eae607b2c128eaca52b2dca33907602c4630587a",
+  "docs/diseno/ronda-2/pruebas-despues.log": "78e748957baf95f9e0248dac754dcb6fb4f1ec83d101c952714ca0de38bf7860",
+  ".venv/soc-runtime/test-results/soc-tests-20261103-161108.log": "806d80f63ae2ecb9d6255306df4aebda6662834232eb7d993e4526a4925e09b3"
+}

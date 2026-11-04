@@ -1,8 +1,19 @@
 .venv/
 .env
+.env.*
+!.env.example
+access.json
 __pycache__/
 *.sqlite3
 *.sqlite3-*
 migration-backups/
 frontend/node_modules/
 frontend/dist/
+
+# Evidencia de navegador, respaldos y herramientas temporales locales.
+/tmp/
+/docs/diseno/
+
+# Figuras y controles generados al reproducir el articulo.
+/output/articulo-soc/supplementary/figure-*
+/output/articulo-soc/supplementary/quality-report.json

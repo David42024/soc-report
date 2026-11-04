@@ -32,6 +32,8 @@ Para detener los procesos y contenedores administrados por el proyecto:
 
 El frontend lo sirve FastAPI desde frontend/dist. Las fuentes están en frontend/src. Se utilizan React 18, TypeScript, TailwindCSS y Recharts. El backend usa FastAPI, Pydantic y SQLAlchemy con psycopg.
 
+La identidad visual se configura en frontend/src/tokens.css, con colores, tipografía Inter variable autoalojada, espaciado, radios y variantes de tema. Tailwind referencia estos tokens desde frontend/tailwind.config.js. Los iconos SVG locales y los componentes compartidos están en frontend/src/ui.tsx. La fuente se incluye mediante @fontsource-variable/inter y FastAPI sirve su archivo WOFF2 con el frontend compilado. El diseño funciona sin descargar recursos externos durante su uso. Para ajustar un color semántico, modifica su par claro/oscuro y verifica el contraste con su fondo correspondiente. Compila con npm run build --prefix frontend. El diagnóstico, las capturas comparativas y la evidencia de validación están en [docs/DISENO.md](docs/DISENO.md).
+
 ## Usuarios y permisos
 
 Las credenciales iniciales generadas aleatoriamente están en .venv/soc-runtime/access.json. El comando de arranque muestra su ruta. Las contraseñas se guardan con PBKDF2 en la base de datos. El archivo local permite al propietario de este entorno consultar las credenciales iniciales.
@@ -51,15 +53,15 @@ El encabezado histórico X-Operator-Token se conserva para compatibilidad con cl
 
 ## Operación
 
-1. En Nuevo reporte, introduce un título y una descripción con el activo afectado.
+1. Desde la pantalla de acceso, elige Reportar sin iniciar sesión. Si ya ingresaste, elige Nuevo reporte en el menú lateral. Introduce un título y una descripción con el activo afectado.
 2. Espera la confirmación con el ID. La clasificación externa puede tardar.
-3. Selecciona Ver en el tablero e inicia sesión.
+3. Inicia sesión y usa el menú lateral para abrir Tablero del operador, Dashboard e informes o los demás módulos de tu rol.
 4. Las columnas Por atender, En atención y Resueltos muestran el avance.
 5. El analista registra la primera respuesta cuando ocurre y después la resolución.
 6. Ver detalle muestra las fechas, el origen, el motivo de revisión y la bitácora del caso.
 7. El gestor puede descargar PDF, Word y Excel desde el tablero. Las exportaciones abarcan todos los reportes, con un máximo de 10000.
 
-El modo oscuro, el idioma y el tema del sistema se seleccionan en la cabecera. El botón Asistente SOC abre un chat flotante en la esquina inferior derecha. FastAPI recibe los mensajes en POST /api/chat, consulta Groq y usa Gemini como respaldo ante errores del proveedor principal. Cada respuesta identifica al proveedor. El historial de la conversación permite preguntas de seguimiento y permanece en memoria mientras la página esté abierta.
+El idioma y el tema se seleccionan en la cabecera de acceso o al pie del menú lateral. En pantallas pequeñas, el botón Menú abre la navegación. El botón Asistente SOC abre un chat flotante en la esquina inferior derecha. FastAPI recibe los mensajes en POST /api/chat, consulta Groq y usa Gemini como respaldo ante errores del proveedor principal. Cada respuesta identifica al proveedor. El historial de la conversación permite preguntas de seguimiento y permanece en memoria mientras la página esté abierta.
 
 Las claves GROQ_API_KEY y GEMINI_API_KEY están en .env y se usan desde el backend. CHAT_GROQ_MODEL y CHAT_GEMINI_MODEL seleccionan los modelos. CHAT_TIMEOUT_SECONDS limita la espera por proveedor y CHAT_LIMIT limita las solicitudes por IP y minuto. El navegador recibe el texto de la respuesta y el nombre del proveedor.
 

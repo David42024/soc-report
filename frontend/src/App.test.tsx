@@ -24,12 +24,28 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
+it("permite mostrar y ocultar la contraseña sin perder el valor", async () => {
+  const user = userEvent.setup(); render(<App />);
+  const password = screen.getByLabelText("Contraseña");
+  await user.type(password, "solo-prueba-visual");
+  expect(password.getAttribute("type")).toBe("password");
+  await user.click(screen.getByRole("button", {name: "Mostrar contraseña"}));
+  expect(password.getAttribute("type")).toBe("text");
+  await user.click(screen.getByRole("button", {name: "Ocultar contraseña"}));
+  expect(password.getAttribute("type")).toBe("password");
+  expect((password as HTMLInputElement).value).toBe("solo-prueba-visual");
+  expect(apiFetch).not.toHaveBeenCalled();
+});
+
 it("recuerda el tema y cambia los textos del formulario al inglés", async () => {
   const user = userEvent.setup(); render(<App />);
-  await user.selectOptions(screen.getByLabelText("Tema"), "dark");
-  await user.selectOptions(screen.getByLabelText("Idioma"), "en");
+  await user.click(within(screen.getByRole("radiogroup", {name: "Tema"})).getByRole("radio", {name: "Oscuro"}));
+  await user.click(within(screen.getByRole("radiogroup", {name: "Idioma"})).getByRole("radio", {name: "English"}));
   expect(document.documentElement.dataset.theme).toBe("dark");
   expect(localStorage.getItem("soc-language")).toBe("en");
+  expect(screen.getByRole("heading", {name: "Sign in"})).toBeDefined();
+  expect(screen.queryByRole("navigation", {name: "Modules"})).toBeNull();
+  await user.click(screen.getByRole("button", {name: "Report without signing in"}));
   expect(screen.getByLabelText("Title")).toBeDefined();
   expect(screen.getByRole("button",{name:"Submit report"})).toBeDefined();
 });
@@ -38,15 +54,18 @@ it("conserva la clave de idempotencia al repetir un envío fallido", async () =>
   const user = userEvent.setup();
   apiFetch.mockResolvedValueOnce(json({detail:"Prueba de fallo"},503)).mockResolvedValueOnce(json(report,201));
   render(<App />);
+  await user.click(screen.getByRole("button", {name: "Reportar sin iniciar sesión"}));
   await user.type(screen.getByLabelText("Título"), report.titulo);
   await user.type(screen.getByLabelText("Descripción"), report.descripcion);
   await user.click(screen.getByRole("button",{name:"Enviar reporte"}));
   await screen.findByRole("alert");
   await user.click(screen.getByRole("button",{name:"Enviar reporte"}));
-  await screen.findByRole("button",{name:"Ver en el tablero"});
+  await screen.findByText(/ID: test-report/);
   const calls = apiFetch.mock.calls;
   expect(new Headers(calls[0][1]?.headers).get("Idempotency-Key")).toBe(new Headers(calls[1][1]?.headers).get("Idempotency-Key"));
   expect(screen.getByRole("status").textContent).toContain("test-report");
+  await user.click(screen.getByRole("button", {name: "Volver a iniciar sesión"}));
+  expect(screen.getByLabelText("Usuario")).toBeDefined();
 });
 
 it.each(["gestor", "analista"])("%s ve los casos con los controles de su rol", async (role) => {
@@ -59,7 +78,6 @@ it.each(["gestor", "analista"])("%s ve los casos con los controles de su rol", a
     throw new Error(String(path));
   });
   render(<App />);
-  await user.click(screen.getByRole("button",{name:"Tablero del operador"}));
   await user.type(screen.getByLabelText("Usuario"),role);
   await user.type(screen.getByLabelText("Contraseña"),"password");
   await user.click(screen.getByRole("button",{name:"Ingresar"}));
@@ -68,7 +86,7 @@ it.each(["gestor", "analista"])("%s ve los casos con los controles de su rol", a
   expect(screen.getByRole("region",{name:"En atención"})).toBeDefined();
   expect(screen.getByRole("region",{name:"Resueltos"})).toBeDefined();
   expect(Boolean(screen.queryByRole("button",{name:"Registrar primera respuesta"}))).toBe(role === "analista");
-  expect(Boolean(screen.queryByRole("button",{name:"Exportar XLSX"}))).toBe(role === "gestor");
+  expect(Boolean(screen.queryByText("Exportar", { selector: "summary" }))).toBe(role === "gestor");
 });
 
 it("el gestor abre el dashboard, aplica filtros y registra el cambio de módulo", async () => {
@@ -82,27 +100,93 @@ it("el gestor abre el dashboard, aplica filtros y registra el cambio de módulo"
     if (path === "/api/triage") return json({baseline:null,comparable_reports:0,estimated_hours_saved:null});
     if (path === "/api/dashboard") return json(result);
     if (path === "/api/dashboard?tipo=malware") return json({ ...result, total: 7, demo: 0 });
+    if (path === "/api/activos") return json([]);
     throw new Error(String(path));
   });
   render(<App />);
-  await user.click(screen.getByRole("button",{name:"Tablero del operador"}));
   await user.type(screen.getByLabelText("Usuario"),"gestor");
   await user.type(screen.getByLabelText("Contraseña"),"password");
   await user.click(screen.getByRole("button",{name:"Ingresar"}));
-  await user.click(await screen.findByRole("button",{name:"Dashboard e informes"}));
+  const sidebar = await screen.findByRole("complementary", {name: "Área de trabajo"});
+  const dashboardButton = within(sidebar).getByRole("button",{name:"Dashboard e informes"});
+  await user.click(dashboardButton);
+  expect(dashboardButton.getAttribute("aria-current")).toBe("page");
   await screen.findByText("120");
   expect(screen.getByText("3 DEMO")).toBeDefined();
   await user.selectOptions(screen.getByLabelText("Tipo"), "malware");
   await user.click(screen.getByRole("button", { name: "Aplicar" }));
   await screen.findByText("7");
   const visits = auditFetch.mock.calls.map(([, options]) => JSON.parse(String(options?.body)));
-  expect(visits.some(row => row.modulo === "intake")).toBe(true);
   expect(visits.some(row => row.modulo === "login")).toBe(true);
   const inbox = visits.find(row => row.modulo === "inbox");
   const dashboard = visits.find(row => row.modulo === "dashboard");
   expect(inbox.id).toBe(dashboard.id);
   expect(inbox.secuencia).toBeLessThan(dashboard.secuencia);
   expect(screen.queryByRole("button",{name:"Usuarios"})).toBeNull();
+  const operations = within(sidebar).getByRole("navigation", {name: "Operaciones"});
+  await user.click(within(operations).getByRole("button", {name: "Activos"}));
+  await screen.findByRole("heading", {name: "Activos"});
+  expect(within(operations).queryByRole("button", {name: "Reglas y SLA"})).toBeNull();
+});
+
+it.each([204, 401])("permite pasar de auditor a gestor tras cerrar sesión (HTTP %s)", async logoutStatus => {
+  const user = userEvent.setup();
+  apiFetch.mockImplementation(async (path, options) => {
+    if (path === "/api/auth/login") {
+      const role = JSON.parse(String(options?.body)).username;
+      return json({ access_token: role + "-token", user: { id: role, username: role, role, active: 1 } });
+    }
+    if (path === "/api/auth/logout") {
+      expect(new Headers(options?.headers).get("Authorization")).toBe("Bearer auditor-token");
+      return new Response(null, { status: logoutStatus });
+    }
+    if (path === "/api/reportes" || String(path).startsWith("/api/audit?")) return json([]);
+    if (path === "/api/metricas") return json({ total: 0 });
+    if (path === "/api/triage") return json({ baseline: null });
+    throw new Error(String(path));
+  });
+  render(<App />);
+  await user.type(screen.getByLabelText("Usuario"), "auditor");
+  await user.type(screen.getByLabelText("Contraseña"), "password");
+  await user.click(screen.getByRole("button", { name: "Ingresar" }));
+  expect(await screen.findByRole("heading", { name: "Auditoría" })).toBeDefined();
+  expect(screen.queryByRole("button", { name: "Dashboard e informes" })).toBeNull();
+  await user.click(screen.getByRole("button", {name: "Menú de usuario"}));
+  await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+  await user.type(await screen.findByLabelText("Usuario"), "gestor");
+  await user.type(screen.getByLabelText("Contraseña"), "password");
+  await user.click(screen.getByRole("button", { name: "Ingresar" }));
+  expect(await screen.findByRole("button", { name: "Dashboard e informes" })).toBeDefined();
+});
+
+it("el menú de usuario muestra avisos, persiste el tema y cierra con Escape o clic fuera", async () => {
+  const user = userEvent.setup();
+  apiFetch.mockImplementation(async path => {
+    if (path === "/api/auth/login") return json({access_token:"test-token",user:{id:"manager",username:"gestor",role:"gestor",active:1}});
+    if (path === "/api/reportes") return json([]);
+    if (path === "/api/metricas") return json({total:0});
+    if (path === "/api/triage") return json({baseline:null});
+    if (String(path).startsWith("/api/notificaciones")) return json([{read_at:null},{read_at:"2026-11-03"}]);
+    throw new Error(String(path));
+  });
+  render(<App />);
+  await user.type(screen.getByLabelText("Usuario"), "gestor");
+  await user.type(screen.getByLabelText("Contraseña"), "password");
+  await user.click(screen.getByRole("button", {name:"Ingresar"}));
+  await screen.findByRole("button", {name:"Notificaciones · 1 sin leer"});
+  const trigger = screen.getByRole("button", {name:"Menú de usuario"});
+  await user.click(trigger);
+  const dialog = screen.getByRole("dialog", {name:"Tu cuenta"});
+  const light = within(dialog).getByRole("radio", {name:"Claro"});
+  await user.click(light);
+  await user.click(within(dialog).getByRole("radio", {name:"Oscuro"}));
+  expect(localStorage.getItem("soc-theme")).toBe("dark");
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog", {name:"Tu cuenta"})).toBeNull();
+  expect(document.activeElement).toBe(trigger);
+  await user.click(trigger);
+  await user.click(screen.getByRole("heading", {name:"Tablero del operador"}));
+  expect(screen.queryByRole("dialog", {name:"Tu cuenta"})).toBeNull();
 });
 
 it("solicita el segundo factor y lo envía con el siguiente intento", async () => {
@@ -118,13 +202,12 @@ it("solicita el segundo factor y lo envía con el siguiente intento", async () =
     throw new Error(String(path));
   });
   render(<App />);
-  await user.click(screen.getByRole("button",{name:"Tablero del operador"}));
   await user.type(screen.getByLabelText("Usuario"),"auditor");
   await user.type(screen.getByLabelText("Contraseña"),"password");
   await user.click(screen.getByRole("button",{name:"Ingresar"}));
   await user.type(await screen.findByLabelText("Código de segundo factor o recuperación"),"123456");
   await user.click(screen.getByRole("button",{name:"Ingresar"}));
-  await screen.findByRole("heading", { name:"Auditoría inmutable" });
+  await screen.findByRole("heading", { name:"Auditoría" });
 });
 
 it("el chat flotante llama a la API y muestra el proveedor de la respuesta", async () => {
@@ -139,6 +222,33 @@ it("el chat flotante llama a la API y muestra el proveedor de la respuesta", asy
   expect(apiFetch.mock.calls[0][0]).toBe("/api/chat");
   await user.click(screen.getByRole("button",{name:"Cerrar chat"}));
   expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+it("el chat envía con Enter, conserva Shift+Enter y mantiene la conversación al minimizar", async () => {
+  const user = userEvent.setup();
+  let reply!: (response: Response) => void;
+  apiFetch.mockImplementationOnce(() => new Promise<Response>(resolve => { reply = resolve; }));
+  render(<App />);
+  const launcher = screen.getByRole("button", {name: "Asistente SOC"});
+  await user.click(launcher);
+  const input = screen.getByLabelText("Tu pregunta");
+  await user.type(input, "Primera línea");
+  await user.keyboard("{Shift>}{Enter}{/Shift}");
+  await user.type(input, "Segunda línea");
+  expect(apiFetch).not.toHaveBeenCalled();
+  await user.keyboard("{Enter}");
+  expect(apiFetch).toHaveBeenCalledTimes(1);
+  const body = JSON.parse(String(apiFetch.mock.calls[0][1]?.body));
+  expect(body).toEqual({language:"es", messages:[{role:"user",content:"Primera línea\nSegunda línea"}]});
+  expect(screen.getByText("Preparando respuesta…")).toBeDefined();
+  reply(json({reply:"Consulta recibida.",provider:"Groq"}));
+  await screen.findByText("Consulta recibida.");
+  await user.click(screen.getByRole("button", {name:"Minimizar chat"}));
+  await waitFor(() => expect(document.activeElement).toBe(launcher));
+  await user.click(launcher);
+  expect(screen.getByText("Consulta recibida.")).toBeDefined();
+  await user.keyboard("{Escape}");
+  await waitFor(() => expect(document.activeElement).toBe(launcher));
 });
 
 it("el chat conserva el contexto y muestra el respaldo Gemini", async () => {
@@ -242,7 +352,6 @@ it("muestra la evolución histórica identificada como DEMO y mantiene el ámbit
     throw new Error(String(path));
   });
   render(<App />);
-  await user.click(screen.getByRole("button",{name:"Tablero del operador"}));
   await user.type(screen.getByLabelText("Usuario"),"gestor");
   await user.type(screen.getByLabelText("Contraseña"),"password");
   await user.click(screen.getByRole("button",{name:"Ingresar"}));

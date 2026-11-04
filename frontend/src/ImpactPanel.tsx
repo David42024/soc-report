@@ -98,8 +98,8 @@ export function ImpactPanel({ token, language, onError }: {
                 <YAxis domain={[0, 100]} unit="%" tick={{ fill: "var(--text)", fontSize: 11 }} />
                 <Tooltip contentStyle={tooltipStyle} /><Legend />
                 <ReferenceLine y={history!.sla_target_pct} stroke="var(--muted)" strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="response_pct" name={s("Respuesta (%)", "Response (%)")} stroke="var(--accent)" strokeWidth={2} />
-                <Line type="monotone" dataKey="resolution_pct" name={s("Resolución (%)", "Resolution (%)")} stroke="#438ac2" strokeWidth={2} />
+                <Line type="monotone" dataKey="response_pct" name={s("Respuesta (%)", "Response (%)")} stroke="var(--chart-1)" strokeWidth={2} isAnimationActive={false} />
+                <Line type="monotone" dataKey="resolution_pct" name={s("Resolución (%)", "Resolution (%)")} stroke="var(--chart-3)" strokeWidth={2} strokeDasharray="5 4" isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -112,8 +112,8 @@ export function ImpactPanel({ token, language, onError }: {
                 <XAxis dataKey="label" tick={{ fill: "var(--text)", fontSize: 11 }} />
                 <YAxis unit="m" tick={{ fill: "var(--text)", fontSize: 11 }} />
                 <Tooltip contentStyle={tooltipStyle} /><Legend />
-                <Line type="monotone" dataKey="manual_minutes" name={s("Manual", "Manual")} stroke="#b37921" strokeWidth={2} />
-                <Line type="monotone" dataKey="assisted_minutes" name={s("Con automatización", "With automation")} stroke="var(--accent)" strokeWidth={2} />
+                <Line type="monotone" dataKey="manual_minutes" name={s("Manual", "Manual")} stroke="var(--chart-3)" strokeWidth={2} strokeDasharray="5 4" isAnimationActive={false} />
+                <Line type="monotone" dataKey="assisted_minutes" name={s("Con automatización", "With automation")} stroke="var(--chart-2)" strokeWidth={2} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

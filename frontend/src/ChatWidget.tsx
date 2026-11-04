@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { request } from "./api";
 import { translate } from "./i18n";
 import Markdown from "react-markdown";
+import { Icon } from "./ui";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,6 +21,7 @@ export function ChatWidget({ language, onVisibilityChange }: { language: string;
   const [pending, setPending] = useState<Pending | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [mobile, setMobile] = useState(false);
   const inFlight = useRef(false);
   const launcher = useRef<HTMLButtonElement>(null);
   const field = useRef<HTMLTextAreaElement>(null);
@@ -27,13 +29,26 @@ export function ChatWidget({ language, onVisibilityChange }: { language: string;
   const t = (key: string) => translate(language, key);
   const s = (es: string, en: string) => language === "en" ? en : es;
 
-  useEffect(() => { if (open) field.current?.focus(); }, [open]);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia("(max-width: 46rem)");
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => { if (open && !busy) field.current?.focus(); }, [open, busy]);
   useEffect(() => { if (log.current) log.current.scrollTop = log.current.scrollHeight; }, [messages, pending, busy, error, open]);
+  useEffect(() => {
+    if (!field.current) return;
+    field.current.style.height = "auto";
+    field.current.style.height = Math.min(field.current.scrollHeight, 160) + "px";
+  }, [input, open]);
 
   function close() {
     setOpen(false);
     onVisibilityChange?.(false);
-    launcher.current?.focus();
+    requestAnimationFrame(() => launcher.current?.focus());
   }
 
   async function complete(payload: Pending) {
@@ -68,27 +83,43 @@ export function ChatWidget({ language, onVisibilityChange }: { language: string;
 
   return <>
     <button ref={launcher} type="button" className="chat-launcher" aria-controls="soc-chat-panel" aria-expanded={open}
+      aria-label={s("Asistente SOC", "SOC assistant")} title={s("Asistente SOC", "SOC assistant")}
       onClick={() => {
         if (open) close();
         else { setOpen(true); onVisibilityChange?.(true); }
       }}>
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z" />
-        <path d="M7 9h10M7 13h7" />
-      </svg>
-      {s("Asistente SOC", "SOC assistant")}
+      <Icon name="chat" />
     </button>
-    {open && <section id="soc-chat-panel" className="chat-widget" role="dialog" aria-modal="false" aria-labelledby="soc-chat-title"
-      onKeyDown={event => { if (event.key === "Escape") close(); }}>
+    {open && <section id="soc-chat-panel" className="chat-widget" role="dialog" aria-modal={mobile} aria-labelledby="soc-chat-title"
+      onKeyDown={event => {
+        if (event.key === "Escape") close();
+        if (mobile && event.key === "Tab") {
+          const controls = event.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), textarea:not(:disabled), a[href]");
+          const first = controls[0], last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }
+      }}>
       <header className="chat-widget-header">
+        <span className="assistant-avatar" aria-hidden="true"><Icon name="chat" /></span>
         <div><h2 id="soc-chat-title">{s("Asistente SOC", "SOC assistant")}</h2><p>{s("Groq · respaldo Gemini", "Groq · Gemini fallback")}</p></div>
-        <button type="button" className="secondary" onClick={close} aria-label={s("Cerrar chat", "Close chat")}>×</button>
+        <div className="chat-window-actions">
+          <button type="button" className="ghost" onClick={close} aria-label={s("Minimizar chat", "Minimize chat")} title={s("Minimizar chat", "Minimize chat")}><Icon name="minimize" /></button>
+          <button type="button" className="ghost" onClick={close} aria-label={s("Cerrar chat", "Close chat")} title={s("Cerrar chat", "Close chat")}><Icon name="close" /></button>
+        </div>
       </header>
       <ul ref={log} role="log" aria-live="polite" aria-label={t("chat")} className="chat-log">
-        <li className="chat-assistant"><strong>{t("assistant")}</strong><p>{t("welcome")}</p></li>
+        <li className="chat-assistant">
+          <span className="assistant-avatar" aria-hidden="true"><Icon name="chat" /></span>
+          <div className="chat-bubble"><strong className="sr-only">{t("assistant")}</strong><p>{t("welcome")}</p>
+            {!messages.length && !pending && <div className="suggestions">
+              {["askReport", "askBoard", "askSla"].map(key => <button type="button" className="secondary" key={key} disabled={busy} onClick={() => send(t(key))}>{t(key)}</button>)}
+            </div>}
+          </div>
+        </li>
         {messages.map((message, index) => <li className={message.role === "user" ? "chat-user" : "chat-assistant"} key={index}>
-          <strong>{t(message.role === "user" ? "you" : "assistant")}</strong>
-          {message.provider && <span className="chat-provider">{message.provider}{message.provider === "Gemini" ? s(" · respaldo", " · fallback") : ""}</span>}
+          {message.role === "assistant" && <span className="assistant-avatar" aria-hidden="true"><Icon name="chat" /></span>}
+          <div className="chat-bubble"><strong className="sr-only">{t(message.role === "user" ? "you" : "assistant")}</strong>
           {message.role === "assistant"
             ? <div className="chat-markdown"><Markdown skipHtml components={{
                 a: ({ children, href, title }) => href
@@ -97,27 +128,33 @@ export function ChatWidget({ language, onVisibilityChange }: { language: string;
                 img: ({ alt }) => <span>{alt}</span>,
               }}>{message.content}</Markdown></div>
             : <p>{message.content}</p>}
+          {message.provider && <small className="chat-provider">{message.provider}{message.provider === "Gemini" ? s(" · respaldo", " · fallback") : ""}</small>}
+          </div>
         </li>)}
-        {pending && <li className="chat-user"><strong>{t("you")}</strong><p>{pending.messages.at(-1)!.content}</p></li>}
-        {busy && <li className="chat-assistant"><p>{s("Preparando respuesta…", "Preparing a reply…")}</p></li>}
+        {pending && <li className="chat-user"><div className="chat-bubble"><strong className="sr-only">{t("you")}</strong><p>{pending.messages.at(-1)!.content}</p></div></li>}
+        {busy && <li className="chat-assistant">
+          <span className="assistant-avatar" aria-hidden="true"><Icon name="chat" /></span>
+          <div className="chat-bubble typing" role="status"><span className="sr-only">{s("Preparando respuesta…", "Preparing a reply…")}</span>
+            <span aria-hidden="true">●</span><span aria-hidden="true">●</span><span aria-hidden="true">●</span>
+          </div>
+        </li>}
       </ul>
       {error && <div className="chat-error" role="alert">
         <p>{s("No se pudo obtener una respuesta. Puedes reintentar tu pregunta.", "A reply could not be retrieved. You can retry your question.")}</p>
         <button type="button" className="secondary" disabled={busy} onClick={() => pending && complete(pending)}>{s("Reintentar", "Retry")}</button>
       </div>}
-      {!messages.length && !pending && <div className="suggestions">
-        {["askReport", "askBoard", "askSla"].map(key => <button type="button" className="secondary" key={key} disabled={busy} onClick={() => send(t(key))}>{t(key)}</button>)}
-      </div>}
       <form className="chat-compose" onSubmit={event => { event.preventDefault(); send(input); }}>
-        <label htmlFor="chat-input">{t("chatLabel")}</label>
+        <div className="chat-input-wrap">
         <textarea ref={field} id="chat-input" value={input} onChange={event => setInput(event.target.value)}
-          maxLength={1500} rows={2} required disabled={busy} placeholder={t("chatExample")}
+          aria-label={t("chatLabel")} maxLength={1500} rows={1} required disabled={busy} placeholder={t("chatExample")}
           onKeyDown={event => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault(); send(input);
             }
           }} />
-        <div className="chat-compose-footer"><p className="hint">{s("Tus mensajes se envían al proveedor de IA.", "Your messages are sent to the AI provider.")}</p><button disabled={busy || !input.trim()}>{t("send")}</button></div>
+        <button aria-label={t("send")} title={t("send")} disabled={busy || !input.trim()}><Icon name="send" /></button>
+        </div>
+        <p className="hint chat-privacy">{s("Tus mensajes se envían al proveedor de IA.", "Your messages are sent to the AI provider.")}</p>
       </form>
     </section>}
   </>;

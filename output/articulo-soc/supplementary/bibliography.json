@@ -1,0 +1,54 @@
+[
+  [
+    "amershi",
+    "S. Amershi, D. Weld, M. Vorvoreanu, A. Fourney, B. Nushi, P. Collisson, J. Suh, S. Iqbal, P. N. Bennett, K. Inkpen, J. Teevan, R. Kikin-Gil, E. Horvitz: Guidelines for Human-AI Interaction, Proceedings of the 2019 CHI Conference on Human Factors in Computing Systems, pp. 1–13, May 2019. https://doi.org/10.1145/3290605.3300233"
+  ],
+  [
+    "desolda",
+    "G. Desolda, F. Greco, L. Viganò: APOLLO: A GPT-based tool to detect phishing emails and generate explanations that warn users, Proceedings of the ACM on Human-Computer Interaction, Vol. 9, No. 4, pp. 1–33, June 2025. https://doi.org/10.1145/3733049"
+  ],
+  [
+    "geifman",
+    "Y. Geifman, R. El-Yaniv: Selective Classification for Deep Neural Networks, Advances in Neural Information Processing Systems, Vol. 30, 2017. https://proceedings.neurips.cc/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html"
+  ],
+  [
+    "greshake",
+    "K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, M. Fritz: Not what you’ve signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection, arXiv preprint 2302.12173, revised May 2023. https://doi.org/10.48550/arXiv.2302.12173"
+  ],
+  [
+    "guo",
+    "C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger: On Calibration of Modern Neural Networks, Proceedings of the 34th International Conference on Machine Learning, PMLR, Vol. 70, pp. 1321–1330, August 2017. https://proceedings.mlr.press/v70/guo17a.html"
+  ],
+  [
+    "habibzadeh",
+    "A. Habibzadeh, F. Feyzi, R. Ebrahimi Atani: Large Language Models for Security Operations Centers: A Comprehensive Survey, Journal of Electrical and Computer Engineering, Vol. 2026, No. 1, Article 3383674, June 2026. https://doi.org/10.1155/jece/3383674"
+  ],
+  [
+    "hevner",
+    "A. R. Hevner, S. T. March, J. Park, S. Ram: Design Science in Information Systems Research, MIS Quarterly, Vol. 28, No. 1, pp. 75–105, March 2004. https://doi.org/10.2307/25148625"
+  ],
+  [
+    "morris",
+    "T. P. Morris, I. R. White, M. J. Crowther: Using simulation studies to evaluate statistical methods, Statistics in Medicine, Vol. 38, No. 11, pp. 2074–2102, May 2019. https://doi.org/10.1002/sim.8086"
+  ],
+  [
+    "nist",
+    "A. Nelson, S. Rekhi, M. Souppaya, K. Scarfone: Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile, NIST Special Publication 800-61 Revision 3, April 2025. https://doi.org/10.6028/NIST.SP.800-61r3"
+  ],
+  [
+    "postgres",
+    "PostgreSQL Global Development Group: PostgreSQL 16 Documentation, INSERT, online reference, accessed November 3, 2026. https://www.postgresql.org/docs/16/sql-insert.html"
+  ],
+  [
+    "redis",
+    "Redis: Redis persistence, online technical documentation, accessed November 3, 2026. https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/"
+  ],
+  [
+    "rieger",
+    "M. Rieger, A. Shah, A. Alam, M. J. Hossain: Possibilities and limitations of using large language models (LLMs) for alert classification and prioritisation in security operations centers (SOCs), Expert Systems with Applications, Vol. 331, Article 133194, 2026. https://doi.org/10.1016/j.eswa.2026.133194"
+  ],
+  [
+    "tian",
+    "K. Tian, E. Mitchell, A. Zhou, A. Sharma, R. Rafailov, H. Yao, C. Finn, C. Manning: Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback, Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing, pp. 5433–5442, December 2023. https://doi.org/10.18653/v1/2023.emnlp-main.330"
+  ]
+]
