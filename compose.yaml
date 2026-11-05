@@ -40,8 +40,10 @@ services:
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
       N8N_TEMPLATES_ENABLED: "false"
-      EXECUTIONS_DATA_SAVE_ON_ERROR: none
-      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: all
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 336
       GENERIC_TIMEZONE: America/Lima
     volumes: ["./.venv/soc-runtime/n8n-docker:/home/node/.n8n"]
     extra_hosts: ["host.docker.internal:host-gateway"]

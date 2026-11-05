@@ -77,6 +77,7 @@ class CloudModelTests(unittest.IsolatedAsyncioTestCase):
     async def test_primary_success_does_not_send_the_report_to_gemini(self):
         result = await self.run_model(httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]}))
         self.assertEqual((result.text, self.model.status, self.hosts), ("{}", "Groq", ["api.groq.com"]))
+        self.assertEqual(result.session_metadata, {"soc_provider": "groq"})
 
     async def test_transient_errors_use_gemini_and_ignore_thought_parts(self):
         def timed_out(request):
@@ -90,6 +91,7 @@ class CloudModelTests(unittest.IsolatedAsyncioTestCase):
                 ]}}]})
                 result = await self.run_model(failure, gemini)
                 self.assertEqual((result.text, self.model.status), ("{}", "Gemini"))
+                self.assertEqual(result.session_metadata, {"soc_provider": "gemini"})
                 self.assertEqual(self.hosts, ["api.groq.com", "generativelanguage.googleapis.com"])
 
     async def test_permanent_provider_errors_and_bad_responses_use_gemini(self):

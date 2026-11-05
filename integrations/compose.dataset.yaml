@@ -1,0 +1,40 @@
+# Separate named volumes per evaluation run. Host ports are chosen by Docker.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: soc_evaluation
+      POSTGRES_PASSWORD: ${DATASET_PG_PASSWORD:?}
+      POSTGRES_DB: soc_evaluation
+    ports: ["127.0.0.1::5432"]
+    volumes: ["pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "soc_evaluation", "-d", "soc_evaluation"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.109.2
+    environment:
+      N8N_ENCRYPTION_KEY: ${DATASET_N8N_KEY:?}
+      N8N_LISTEN_ADDRESS: 0.0.0.0
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      EXECUTIONS_DATA_SAVE_ON_ERROR: none
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+    ports: ["127.0.0.1::5678"]
+    volumes:
+      - n8n:/home/node/.n8n
+      - ${DATASET_IMPORT_DIR:?}:/soc-import:ro
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5678/healthz/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+volumes:
+  pg:
+  n8n:

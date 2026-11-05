@@ -13,13 +13,12 @@ from .context import identity
 from .db import utc_now
 from .exports import export_report
 from .insights import TITLES, DateRange, ReportFilters, ReportKind, report_rows, report_table, summarize
-from .security import LoginChallenge, LoginInput, PERMISSIONS, hash_password, verify_password
+from .security import LoginChallenge, LoginInput, PERMISSIONS, Role, hash_password, verify_password
 from .navigation import observe
 from .impact_study import demo_sla_comparison
 
-Role = Literal["administrador", "analista", "gestor", "auditor"]
 Format = Literal["pdf", "docx", "xlsx"]
-Module = Literal["intake", "inbox", "dashboard", "impact", "audit", "users", "profile", "chat",
+Module = Literal["intake", "inbox", "solicitudes", "avisos", "dashboard", "impact", "audit", "users", "profile", "chat",
                  "activos", "equipos", "revision", "notificaciones", "reglas", "salud", "login"]
 MODULE_PERMISSIONS = {
     **dict.fromkeys(("inbox", "dashboard", "impact", "activos", "equipos", "notificaciones", "salud"), "read"),

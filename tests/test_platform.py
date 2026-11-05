@@ -65,6 +65,83 @@ class PlatformTests(unittest.TestCase):
                 self.assertEqual(self.client.get("/api/auth/me", headers=headers).status_code, 401)
         self.assertEqual(self.client.get("/api/reportes", headers={"X-Operator-Token": "compatibility-token"}).status_code, 401)
 
+    def test_requester_tracks_only_own_reports_through_response_and_resolution(self):
+        admin = self.login("administrador")
+        for name in ("persona-a", "persona-b"):
+            created = self.client.post("/api/users", headers=admin, json={
+                "username": name, "password": PASSWORD, "role": "solicitante",
+            })
+            self.assertEqual(created.status_code, 201, created.text)
+        owner, other = self.login("persona-a"), self.login("persona-b")
+        payload = {"titulo": "Correo falso de soporte", "descripcion": "Recibí un enlace sospechoso para renovar la clave."}
+        public = self.submit()
+        key = str(uuid4())
+        submit_headers = {**owner, "Idempotency-Key": key}
+        response = self.client.post("/api/reportes", headers=submit_headers, json=payload)
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertEqual(self.client.post("/api/reportes", headers=submit_headers, json=payload).status_code, 200)
+        for identity in ({}, other):
+            replay = self.client.post("/api/reportes", headers={**identity, "Idempotency-Key": key}, json=payload)
+            self.assertEqual(replay.status_code, 409)
+        case_path = f"/api/mis-solicitudes/{key}"
+        self.assertEqual(self.client.get(case_path).status_code, 401)
+        self.assertEqual(self.client.get(case_path, headers=other).status_code, 404)
+        self.assertEqual(self.client.get("/api/mis-solicitudes", headers=other).json(), [])
+        self.assertEqual(self.client.get(f"/api/mis-solicitudes/{public['id']}", headers=owner).status_code, 404)
+        self.assertEqual([row["id"] for row in self.client.get("/api/mis-solicitudes", headers=owner).json()], [key])
+        for route in ("/api/reportes", "/api/dashboard", f"/api/reportes/{key}/bitacora", f"/api/reportes/{key}/colaboracion"):
+            self.assertEqual(self.client.get(route, headers=owner).status_code, 403)
+        self.assertEqual(self.client.post(f"/api/reportes/{key}/resolver", headers=owner).status_code, 403)
+
+        pending = self.client.get(case_path, headers=owner).json()
+        self.assertTrue(pending["asignado_at"])
+        self.assertIsNone(pending["respondido_at"])
+        self.assertIsNone(pending["resuelto_at"])
+        self.assertNotIn("confianza", pending)
+        notices_path = "/api/mis-solicitudes/notificaciones"
+        self.assertEqual(self.client.get(notices_path).status_code, 401)
+        self.assertEqual(self.client.get(notices_path, headers=other).json(), [])
+        assigned = self.client.get(notices_path, headers=owner).json()
+        self.assertEqual([(row["report_id"], row["accion"]) for row in assigned], [(key, "asignado")])
+        analyst = self.login("analista")
+        for action, field in (("responder", "respondido_at"), ("resolver", "resuelto_at")):
+            updated = self.client.post(f"/api/reportes/{key}/{action}", headers=analyst)
+            self.assertEqual(updated.status_code, 200)
+            self.assertEqual(self.client.get(case_path, headers=owner).json()[field], updated.json()[field])
+        notices = self.client.get(notices_path, headers=owner).json()
+        self.assertEqual({row["accion"] for row in notices}, {"asignado", "responder", "resolver"})
+        self.assertTrue(all(row["read_at"] is None for row in notices))
+        read_path = case_path + "/notificaciones/responder/leida"
+        self.assertEqual(self.client.put(read_path, headers=other).status_code, 404)
+        self.assertEqual(self.client.put(read_path, headers=owner).status_code, 204)
+        self.assertEqual(self.client.put(read_path, headers=owner).status_code, 204)
+        notices = self.client.get(notices_path, headers=owner).json()
+        self.assertEqual([row["accion"] for row in notices if row["read_at"]], ["responder"])
+
+    def test_sqlite_role_upgrade_preserves_existing_sessions_and_foreign_keys(self):
+        path = Path(self.temp.name) / "legacy-role.sqlite3"
+        with closing(sqlite3.connect(path)) as connection, connection:
+            connection.executescript("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL CHECK (role IN ('administrador', 'analista', 'gestor', 'auditor')),
+                    active INTEGER NOT NULL DEFAULT 1, token_version INTEGER NOT NULL DEFAULT 0, creado_at TIMESTAMPTZ NOT NULL
+                );
+                CREATE TABLE auth_sessions (jti TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id),
+                    expires_at TIMESTAMPTZ NOT NULL);
+                INSERT INTO users VALUES ('owner','original','test-hash','administrador',1,3,'2026-01-01');
+                INSERT INTO auth_sessions VALUES ('session','owner','2027-01-01');
+            """)
+        upgraded = Database(Settings(sqlite_path=path))
+        self.addCleanup(upgraded.engine.dispose)
+        upgraded.initialize()
+        with upgraded.session(write=True) as execute:
+            self.assertEqual(execute("SELECT token_version FROM users WHERE id='owner'").first()["token_version"], 3)
+            self.assertEqual(execute("SELECT user_id FROM auth_sessions WHERE jti='session'").first()["user_id"], "owner")
+            self.assertEqual(execute("PRAGMA foreign_keys").first()["foreign_keys"], 1)
+            self.assertIsNone(execute("PRAGMA foreign_key_check").first())
+            execute("UPDATE users SET role='solicitante' WHERE id='owner'")
+
     def test_admin_changes_revoke_tokens_and_last_admin_is_preserved(self):
         admin = self.login("administrador")
         analyst = self.login("analista")

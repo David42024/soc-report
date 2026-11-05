@@ -45,7 +45,7 @@ export function ImpactPanel({ token, language, onError }: {
   const last = periods.at(-1);
   const data = periods.map(row => ({
     ...row,
-    label: new Date(row.period + "-01T12:00:00Z").toLocaleDateString(language, { month: "short", year: "2-digit", timeZone: "UTC" }),
+    label: new Date(row.period + "-01T12:00:00Z").toLocaleDateString(language, { month: "short", year: "2-digit", timeZone: "America/Lima" }),
     manual_minutes: row.manual_seconds_per_case / 60,
     assisted_minutes: (row.automated_seconds_per_case + row.review_seconds_per_case) / 60,
   }));

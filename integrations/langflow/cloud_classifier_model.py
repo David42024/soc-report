@@ -46,7 +46,7 @@ class SocCloudModel(Component):
                 pass
             else:
                 self.status = "Groq"
-                return Message(text=result)
+                return Message(text=result, session_metadata={"soc_provider": "groq"})
 
             for attempt in range(2):
                 try:
@@ -60,7 +60,7 @@ class SocCloudModel(Component):
                     if attempt:
                         raise ValueError("Gemini no respondió a la solicitud.") from None
         self.status = "Gemini"
-        return Message(text=result)
+        return Message(text=result, session_metadata={"soc_provider": "gemini"})
 
     def _schema(self) -> dict:
         properties = {

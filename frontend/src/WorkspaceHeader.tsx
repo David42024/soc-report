@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { request, type User } from "./api";
+import { canReadReports, request, type User } from "./api";
 import { translate } from "./i18n";
 import { Preferences } from "./Preferences";
 import { Avatar, Icon, Popover, type IconName } from "./ui";
@@ -20,21 +20,22 @@ export function WorkspaceHeader(props: Props) {
   const themeButton = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setPopup(null), []);
   const s = (es: string, en: string) => language === "es" ? es : en;
-  const canRead = user.role !== "auditor";
+  const requester = user.role === "solicitante";
+  const noticePath = requester ? "/api/mis-solicitudes/notificaciones" : canReadReports(user.role) ? "/api/notificaciones" : null;
 
   useEffect(() => {
-    if (!canRead) return;
+    if (!noticePath) return;
     let active = true;
     async function load() {
       try {
-        const notices = await request<{ read_at: string | null }[]>("/api/notificaciones?limit=500", token);
+        const notices = await request<{ read_at: string | null }[]>(noticePath + "?limit=500", token);
         if (active) setUnread(notices.filter(item => !item.read_at).length);
       } catch { if (active) setUnread(null); }
     }
     void load();
     const interval = window.setInterval(load, 60_000);
     return () => { active = false; window.clearInterval(interval); };
-  }, [token, canRead, activeModule, noticeVersion]);
+  }, [token, noticePath, activeModule, noticeVersion]);
   useEffect(close, [activeModule, close]);
 
   return <header className="page-bar">
@@ -42,7 +43,7 @@ export function WorkspaceHeader(props: Props) {
       aria-expanded={props.menuOpen} onClick={props.onMenu}><Icon name="menu" /></button>
     <div className="page-title"><Icon name={icon} /><h1 id="module-title">{title}</h1></div>
     <div className="header-actions">
-      {canRead && <button type="button" className="ghost notification-button" aria-label={s("Notificaciones", "Notifications") + (unread === null ? "" : ` · ${unread} ${s("sin leer", "unread")}`)}
+      {noticePath && <button type="button" className="ghost notification-button" aria-label={s("Notificaciones", "Notifications") + (unread === null ? "" : ` · ${unread} ${s("sin leer", "unread")}`)}
         title={s("Notificaciones", "Notifications")} onClick={props.onNotifications}>
         <Icon name="bell" />{unread !== null && unread > 0 && <span className="unread-count">{unread >= 500 ? "500+" : unread}</span>}
       </button>}

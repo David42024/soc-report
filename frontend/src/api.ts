@@ -1,11 +1,18 @@
-export interface Report {
-  id: string; titulo: string; descripcion: string; tipo: string; severidad: string;
-  activo_afectado: string | null; origen: string; motivo_revision: string | null;
-  responsable: string | null; recibido_at: string; notificado_at: string | null;
-  vence_respuesta_at: string | null; vence_resolucion_at: string | null;
+export interface RequestProgress {
+  id: string; titulo: string; descripcion: string; recibido_at: string; responsable: string | null;
+  asignado_at: string | null; vence_respuesta_at: string | null; vence_resolucion_at: string | null;
   respondido_at: string | null; resuelto_at: string | null;
 }
-export type Role = "administrador" | "analista" | "gestor" | "auditor";
+export interface Report extends Omit<RequestProgress, "asignado_at"> {
+  tipo: string; severidad: string;
+  activo_afectado: string | null; origen: string; motivo_revision: string | null;
+  notificado_at: string | null;
+}
+export const roles = ["administrador", "analista", "gestor", "auditor", "solicitante"] as const;
+export type Role = typeof roles[number];
+export function canReadReports(role?: Role) {
+  return role === "administrador" || role === "analista" || role === "gestor";
+}
 export interface User { id: string; username: string; role: Role; active: number }
 export interface Metrics {
   total: number; asignados: number; requieren_revision: number;
@@ -29,13 +36,14 @@ export function stage(report: Report) {
   if (!report.notificado_at || !report.respondido_at) return 0;
   return report.resuelto_at ? 2 : 1;
 }
-export function selectedReports(reports: Report[], filter: string) {
-  return reports.filter((report) => {
-    if (filter === "pendientes") return stage(report) !== 2;
-    if (filter === "resueltos") return stage(report) === 2;
-    if (filter === "revision") return Boolean(report.motivo_revision);
-    return true;
-  });
+export function reportState(report: Report) {
+  if (report.resuelto_at) return "done";
+  if (report.respondido_at) return "needsResolution";
+  return report.notificado_at ? "needsResponse" : "needsRouting";
+}
+export function nextDeadline(report: Report) {
+  if (report.resuelto_at) return null;
+  return report.respondido_at ? report.vence_resolucion_at : report.vence_respuesta_at;
 }
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }

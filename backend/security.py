@@ -5,6 +5,7 @@ import hmac
 import secrets
 import time
 from datetime import datetime, timedelta, timezone
+from typing import Literal, get_args
 from uuid import uuid4
 
 import jwt
@@ -18,9 +19,11 @@ from .context import identity
 from .db import utc_now
 from .totp import Totp
 
-ROLES = ("administrador", "analista", "gestor", "auditor")
+Role = Literal["administrador", "analista", "gestor", "auditor", "solicitante"]
+ROLES = get_args(Role)
 PERMISSIONS = {
     "read": ("administrador", "analista", "gestor"),
+    "case_audit": ("administrador", "analista", "gestor", "auditor"),
     "write": ("administrador", "analista"),
     "report_export": ("administrador", "gestor"),
     "audit": ("administrador", "auditor"),

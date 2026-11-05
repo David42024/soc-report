@@ -20,6 +20,7 @@
   --chat-panel-width: 400px;
   --page: light-dark(#eff3f6, #0d141c);
   --panel: light-dark(#ffffff, #151f2a);
+  --panel-alt: light-dark(#f4f6f8, #1b2632);
   --subtle: light-dark(#f5f8fa, #101922);
   --raised: light-dark(#ffffff, #1c2936);
   --text: light-dark(#172332, #eaf0f6);

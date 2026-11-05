@@ -51,7 +51,8 @@ class LivePlatformTests(unittest.TestCase):
     def test_all_roles_and_three_real_exports(self):
         for role, headers in self.tokens.items():
             with self.subTest(role=role):
-                self.assertEqual(self.api.get("/api/reportes", headers=headers).status_code, 403 if role == "auditor" else 200)
+                self.assertEqual(self.api.get("/api/reportes", headers=headers).status_code,
+                                 200 if role in ("administrador", "analista", "gestor") else 403)
                 self.assertEqual(self.api.get("/api/audit", headers=headers).status_code, 200 if role in ("auditor", "administrador") else 403)
                 self.assertEqual(self.api.get("/api/users", headers=headers).status_code, 200 if role == "administrador" else 403)
                 for path in ("/api/exportar/xlsx", "/api/informes/cola/xlsx"):
@@ -69,9 +70,10 @@ class LivePlatformTests(unittest.TestCase):
     def test_extended_permissions_and_filtered_exports_in_postgresql(self):
         for role, headers in self.tokens.items():
             with self.subTest(role=role):
+                can_read = role in ("administrador", "analista", "gestor")
                 for route, allowed in (
-                    ("dashboard", role != "auditor"), ("activos", role != "auditor"),
-                    ("equipos", role != "auditor"), ("notificaciones", role != "auditor"),
+                    ("dashboard", can_read), ("activos", can_read),
+                    ("equipos", can_read), ("notificaciones", can_read),
                     ("revision", role in ("administrador", "analista")), ("reglas", role == "administrador"),
                 ):
                     self.assertEqual(self.api.get("/api/" + route, headers=headers).status_code, 200 if allowed else 403)

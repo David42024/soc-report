@@ -10,6 +10,32 @@ const messages: Record<string, [string, string]> = {
   dark: ["Oscuro", "Dark"],
   newReport: ["Nuevo reporte", "New report"],
   board: ["Tablero del operador", "Operator board"],
+  myRequests: ["Mis solicitudes", "My requests"],
+  requestsIntro: ["Consulta el estado de los reportes que enviaste con esta cuenta.", "Track reports submitted with this account."],
+  noRequests: ["Aún no has enviado reportes con esta cuenta.", "You have not submitted any reports with this account yet."],
+  requestFilters: ["Filtros de mis solicitudes", "My request filters"],
+  requestSearch: ["Buscar por título o referencia", "Search by title or reference"],
+  requestStatus: ["Estado", "Status"],
+  requestFrom: ["Recibido desde", "Received from"],
+  requestThrough: ["Recibido hasta", "Received through"],
+  requestFilterCount: ["{0} de {1} solicitudes", "{0} of {1} requests"],
+  noMatchingRequests: ["No hay solicitudes que coincidan con los filtros.", "No requests match the filters."],
+  clearFilters: ["Limpiar filtros", "Clear filters"],
+  requestWaiting: ["En espera de atención", "Awaiting attention"],
+  requestReference: ["Referencia", "Reference"],
+  requestProgress: ["Progreso de la solicitud", "Request progress"],
+  requestReceived: ["Recibido", "Received"],
+  requestAssigned: ["Equipo asignado", "Team assigned"],
+  viewProgress: ["Ver progreso", "View progress"],
+  refreshRequests: ["Actualizar estado", "Refresh status"],
+  backToRequests: ["Volver a mis solicitudes", "Back to my requests"],
+  backToBoard: ["Volver al tablero", "Back to board"],
+  lastUpdatedCase: ["Último caso actualizado", "Last updated case"],
+  continueCase: ["Continuar seguimiento", "Continue follow-up"],
+  locateCase: ["Ubicar tarjeta", "Find card"],
+  locatedOutsideFilters: ["Caso visible para seguimiento. Queda fuera de los filtros actuales.", "Shown for follow-up. This case is outside the current filters."],
+  trackWithAccount: ["Para consultar el progreso después del envío, inicia sesión antes de reportar.", "Sign in before reporting to track its progress later."],
+  boardCount: ["{0} de {1} reportes recientes", "{0} of {1} recent reports"],
   chat: ["Chat de ayuda", "Help chat"],
   intakeIntro: ["Describe el incidente. El sistema lo registra y lo deriva al equipo que puede atenderlo.", "Describe the incident. The system records it and routes it to the team that can handle it."],
   title: ["Título", "Title"],
@@ -119,7 +145,7 @@ const messages: Record<string, [string, string]> = {
   askBoard: ["¿Dónde está mi reporte?", "Where is my report?"],
   askSla: ["¿Qué es el SLA?", "What is the SLA?"],
   helpReport: ["En Nuevo reporte, escribe un título y describe qué ocurrió, cuándo y qué activo se vio afectado. Pulsa Enviar reporte y espera la confirmación con el ID.", "In New report, enter a title and describe what happened, when, and which asset was affected. Select Submit report and wait for the confirmation with the ID."],
-  helpBoard: ["En Tablero del operador, inicia sesión con tu usuario y contraseña. Un reporte nuevo aparece en Por atender. Revisa el filtro si no lo ves. Ver detalle contiene el ID y la bitácora. El gestor consulta reportes y el auditor accede a Auditoría.", "In Operator board, sign in with your username and password. New reports appear in Needs attention. Check the filter if you cannot see a report. View details contains the ID and activity log. Managers view reports and auditors access Audit."],
+  helpBoard: ["Si enviaste el reporte con tu cuenta, abre Mis solicitudes y pulsa Ver progreso. Si eres operador, búscalo por título o ID en Tablero del operador y abre Ver detalle para consultar la bitácora.", "If you submitted the report while signed in, open My requests and select View progress. Operators can search by title or ID in the Operator board and open View details to see the activity log."],
   helpSla: ["SLA es el plazo para dar la primera respuesta y resolver el caso. El tablero cuenta los hitos registrados y los plazos que ya vencieron. Registra cada hito cuando ocurra.", "SLA refers to the deadlines for the first response and case resolution. The board counts recorded milestones and deadlines that have passed. Record each milestone when it happens."],
   helpFlow: ["Langflow clasifica el reporte. Después de guardarlo en PostgreSQL, FastAPI llama a n8n para asignar un equipo, fijar plazos y registrar el aviso. Si el aviso queda pendiente, el operador puede reintentar el envío.", "Langflow classifies the report. After saving it in PostgreSQL, FastAPI calls n8n to assign a team, set deadlines, and record the notice. If routing is pending, the operator can retry it."],
   helpOther: ["Puedo explicar cómo enviar un reporte, consultar el tablero, interpretar los plazos o entender qué hacen Langflow y n8n.", "I can explain how to submit a report, use the board, interpret deadlines, or understand what Langflow and n8n do."]
@@ -139,4 +165,8 @@ export const teamNames: Record<string, string> = {
 export function translate(language: string, key: string, ...values: (string | number)[]): string {
   const message = Object.hasOwn(messages, key) ? messages[key][language === "en" ? 1 : 0] : key;
   return String(message ?? "").replace(/\{(\d+)\}/g, (_, index) => String(values[Number(index)] ?? ""));
+}
+
+export function normalizeSearch(value: string) {
+  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }

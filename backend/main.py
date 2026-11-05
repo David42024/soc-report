@@ -7,11 +7,11 @@ from uuid import UUID, uuid4
 from urllib.parse import urlsplit
 
 import httpx
-from fastapi import Depends, FastAPI, Header, HTTPException, Response, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.exc import SQLAlchemyError
 from redis.exceptions import RedisError
@@ -29,18 +29,7 @@ from .operations import install_operations
 from .navigation import expire_visits
 from .provider_health import ProviderHealth
 from .impact_study import install_impact_study
-
-class ReportInput(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    titulo: str = Field(min_length=5, max_length=120)
-    descripcion: str = Field(min_length=15, max_length=4000)
-
-    @field_validator("titulo", "descripcion")
-    @classmethod
-    def reject_null_character(cls, value):
-        if "\x00" in value:
-            raise ValueError("El texto contiene un carácter nulo.")
-        return value
+from .report_input import ReportInput
 
 
 class Rule(BaseModel):
@@ -271,21 +260,44 @@ def create_app(settings=None):
     @app.post("/api/reportes", status_code=201)
     def submit(payload: ReportInput, response: Response, request: Request, idempotency_key: UUID | None = Header(None)):
         security.rate_limit("report", request.client.host, settings.report_limit)
+        principal = getattr(request.state, "principal", {})
+        requester_id = principal["id"] if principal.get("jti") else None
         report_id = str(idempotency_key or uuid4())
         row = db.report(report_id)
         if row is None:
             received_at = utc_now()
             policy = routing_policy(db)
             result, origin, reason = classify(payload.titulo, payload.descripcion, settings, threshold=policy["configuration"]["umbral"])
-            created = db.save_report(report_id, payload, result, origin, reason, received_at, policy["id"])
+            created = db.save_report(report_id, payload, result, origin, reason, received_at, policy["id"], requester_id)
             row = get_report(report_id)
         else:
             created = False
         if not created:
+            if db.request_owner(report_id) != requester_id or (row["titulo"], row["descripcion"]) != (payload.titulo, payload.descripcion):
+                raise HTTPException(409, "La clave de envío ya corresponde a otro reporte.")
             response.status_code = 200
-        if (row["titulo"], row["descripcion"]) != (payload.titulo, payload.descripcion):
-            raise HTTPException(409, "La clave de envío ya corresponde a otro reporte.")
         return receipt(dispatch(row))
+
+    @app.get("/api/mis-solicitudes")
+    def my_requests(principal=Depends(security.authenticate)):
+        return db.request_progress(principal["id"])
+
+    @app.get("/api/mis-solicitudes/notificaciones")
+    def my_notifications(limit: int = Query(100, ge=1, le=500), principal=Depends(security.authenticate)):
+        return db.request_notifications(principal["id"], limit)
+
+    @app.put("/api/mis-solicitudes/{report_id}/notificaciones/{accion}/leida", status_code=204)
+    def mark_my_notification_read(report_id: UUID, accion: Literal["asignado", "responder", "resolver"],
+                                  principal=Depends(security.authenticate)):
+        if not db.mark_request_notification_read(principal["id"], str(report_id), accion):
+            raise HTTPException(404, "Aviso de la solicitud no encontrado.")
+
+    @app.get("/api/mis-solicitudes/{report_id}")
+    def my_request(report_id: UUID, principal=Depends(security.authenticate)):
+        row = db.request_progress(principal["id"], str(report_id))
+        if row is None:
+            raise HTTPException(404, "Solicitud no encontrada.")
+        return row
 
     @app.get("/api/reportes", dependencies=[Depends(operator)])
     def list_reports():
@@ -299,7 +311,7 @@ def create_app(settings=None):
     def metrics():
         return runtime.metrics()
 
-    @app.get("/api/reportes/{report_id}/bitacora", dependencies=[Depends(security.authenticate)])
+    @app.get("/api/reportes/{report_id}/bitacora", dependencies=[Depends(security.require("case_audit"))])
     def audit(report_id: UUID):
         get_report(report_id)
         return db.audit(str(report_id))

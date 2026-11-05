@@ -44,14 +44,19 @@ Las credenciales iniciales generadas aleatoriamente están en .venv/soc-runtime/
 | Analista | Consulta, reintentos, primera respuesta, resolución y tiempo de revisión |
 | Gestor | Consulta de reportes, indicadores, exportación y registro de líneas base |
 | Auditor | Lectura de la bitácora de auditoría |
+| Solicitante | Enviar reportes y consultar su progreso en **Mis solicitudes** |
 
 El administrador crea usuarios, cambia roles, restablece contraseñas y desactiva cuentas en Usuarios. Debe permanecer al menos un administrador activo. Cambiar un rol, contraseña o estado invalida los tokens previos de ese usuario.
+
+Inicia sesión antes de enviar un reporte para vincularlo a tu cuenta. **Mis solicitudes** muestra la recepción, la asignación, la primera respuesta y la resolución de los reportes que enviaste con esa cuenta. Los envíos públicos conservan su comprobante y quedan sin propietario.
 
 El acceso web usa JWT con vencimiento y sesiones revocables. Cerrar sesión invalida el token. Redis mantiene sesiones y límites de solicitudes. La interfaz mantiene el token de acceso en memoria y solicita un nuevo inicio de sesión después de recargar la página.
 
 El encabezado histórico X-Operator-Token se conserva para compatibilidad con clientes anteriores si LEGACY_OPERATOR_ENABLED=true. En este entorno integrado está deshabilitado. Los endpoints internos mantienen X-Internal-Token y el webhook de n8n utiliza X-Webhook-Token. Sus secretos son independientes.
 
 ## Operación
+
+En **Tablero del operador** se muestran hasta cuatro tarjetas por página en cada columna. Pulsa el encabezado de una columna para plegarla o desplegarla. Filtra los 100 reportes recientes por título o ID, estado, severidad, tipo, equipo, fecha o vencimiento. **Muestra del seeder** muestra los casos SOC-01 a SOC-06. **Ver detalle** abre la ficha con descripción, hitos y bitácora.
 
 1. Desde la pantalla de acceso, elige Reportar sin iniciar sesión. Si ya ingresaste, elige Nuevo reporte en el menú lateral. Introduce un título y una descripción con el activo afectado.
 2. Espera la confirmación con el ID. La clasificación externa puede tardar.
@@ -171,11 +176,57 @@ Pruebas adicionales con PostgreSQL, Redis, Langflow, Groq, Gemini y n8n reales. 
 
     powershell -ExecutionPolicy Bypass -File .\Test-Soc.ps1 -Live
 
-Crear 12 reportes identificados como DEMO, repetir sus envíos y registrar varios estados. Se incluye un activo, un equipo de capacitación, un comentario y un adjunto de muestra. Se conserva cualquier línea base existente.
+Preparar seis incidentes de práctica, dos por estado en la primera ejecución. Cada caso tiene un activo, contexto, alcance, evidencia y una nota de seguimiento. Dos casos incluyen un adjunto de laboratorio. La cuenta local `solicitante` envía los seis casos DEMO y puede seguir sus hitos en **Mis solicitudes**. Su campana abre **Avisos de mis solicitudes**, con las actualizaciones de asignación, primera respuesta y resolución. La interfaz y la evidencia del seeder muestran las fechas en hora de Perú.
 
-    .\.venv\Scripts\python.exe -m backend.manage seed --count 12
+    .\.venv\Scripts\python.exe -m backend.manage seed
 
-Los resultados quedan en .venv/soc-runtime/seed-evidence.json. Las pruebas integradas crean reportes temporales propios y conservan los eventos de auditoría que producen.
+Puedes usar `--count` para cargar una parte del catálogo, que tiene seis casos distintos. Repetir el comando reutiliza los mismos ID, completa los pasos pendientes y conserva los hitos ya registrados. Los resultados quedan en `.venv/soc-runtime/seed-evidence.json` para PostgreSQL o `seed-evidence-demo.json` para SQLite. Las pruebas integradas crean reportes temporales propios y conservan los eventos de auditoría que producen.
+
+Para empezar de cero con los datos operativos de reportes, ejecuta `seed --reset`. Antes de borrar, crea una copia verificable en `.venv/soc-runtime/migration-backups`. Elimina reportes, asignaciones, bitácoras, adjuntos, comentarios, mediciones y muestras DEMO, y luego vuelve a cargar los seis casos y el histórico DEMO. Conserva las cuentas y su acceso, la configuración, los activos y equipos, y `audit_log`, que es inmutable. **No uses `--reset` si necesitas conservar reportes actuales.**
+
+    .\.venv\Scripts\python.exe -m backend.manage seed --reset
+
+## Evaluación con incidentes históricos de VERIS VCDB
+
+El comando de evaluación reproduce incidentes públicos por la API del formulario. Cada corrida conserva sus resultados en una base dedicada. La corrida integrada crea PostgreSQL y n8n en un proyecto Docker independiente, con su propia copia del workflow y sus propios tokens. Usa el clasificador Langflow del SOC configurado en .env. Los textos revisados pasan a los proveedores cloud de ese flujo. Los indicadores operativos de la instalación principal quedan separados de esta evaluación.
+
+En PowerShell, desde la raíz del proyecto, descarga la revisión fijada y revisa los candidatos:
+
+    New-Item -ItemType Directory -Force .\tmp\datasets-real | Out-Null
+    curl.exe -fL https://codeload.github.com/vz-risk/VCDB/zip/f6f98c00f66ab35f5b49977a5852ce94a5bb31d1 -o .\tmp\datasets-real\vcdb-f6f98c0.zip
+    powershell -ExecutionPolicy Bypass -File .\Test-SocDataset.ps1 -DryRun -Archive .\tmp\datasets-real\vcdb-f6f98c0.zip
+
+El modo de inspección funciona sin servicios y verifica SHA-256. El archivo `.venv/soc-runtime/dataset/preview.json` conserva las exclusiones, los identificadores, las fuentes y los tipos sugeridos. Las etiquetas se infieren de las acciones VERIS y requieren revisión. La muestra piloto de ocho incidentes contiene paráfrasis en español de resúmenes retrospectivos. Su finalidad es verificar el flujo. Los datos derivados del piloto se distribuyen con atribución bajo [CC BY-SA 4.0, licencia de VCDB](https://github.com/vz-risk/VCDB/blob/f6f98c00f66ab35f5b49977a5852ce94a5bb31d1/LICENSE.txt).
+
+Para ejecutar el piloto integrado, inicia el Langflow del proyecto y compila el frontend si falta `frontend/dist`. Ejecuta:
+
+    powershell -ExecutionPolicy Bypass -File .\Test-SocDataset.ps1 -Run -VerifyRecovery -RunId vcdb-pilot-docker -Archive .\tmp\datasets-real\vcdb-f6f98c0.zip -ReviewedCases .\integrations\dataset\vcdb-pilot.json
+
+`-VerifyRecovery` comprueba guardado durante un corte del n8n aislado, reintento, repetición, conflicto por cambio de contenido y registro de ambos hitos. Para probar sin Docker con PostgreSQL y n8n ya instalados en Windows, agrega `-Native` y usa otro ID. Este modo requiere `pg_ctl`, `node` y la instalación npm de `n8n` en PATH. Para usar SQLite, clasificador demo y enrutamiento local, agrega `-Local` y omite `-VerifyRecovery`.
+
+Cada ejecución escribe `.venv/soc-runtime/dataset/<RunId>/results.json` con los casos, ID de reporte, predicciones, origen, proveedor cuando Langflow lo informa, eventos, comprobaciones SQL, plazos, latencias y métricas. Repite el mismo comando para reanudar con la misma muestra y configuración. Usa otro ID al cambiar modo, muestra o implementación. Los servicios propios de la corrida se detienen al finalizar. Las bases separadas se conservan para reanudación y auditoría.
+
+Para una muestra del artículo, prepara un JSON con la estructura del piloto y `stage: "holdout"`. Documenta el tamaño y el método de muestreo en `sampling`, separa las campañas del piloto en `group`, y registra dos revisores distintos por caso. Ante una discrepancia, documenta la decisión en `adjudication`. Usa `initial_public_report` cuando el texto proceda de la primera fuente disponible y `retrospective_summary` cuando proceda de un resumen posterior. Revisa cada descripción y título para retirar datos sensibles antes de aprobar el envío. El programa admite severidad y activo de referencia cuando los revisores disponen de evidencia para etiquetarlos.
+
+El módulo `scripts.vcdb_review` permite preparar el manifiesto por etapas sin iniciar servicios. La preselección usa una semilla fija, excluye casos piloto y evita fuentes compartidas. Para generar una cola nueva, usa `select` con `--per-type`. Si ya tienes la cola local, empieza en `init`:
+
+    $py = '.\.venv\Scripts\python.exe'
+    $dir = '.\.venv\soc-runtime\dataset'
+    $zip = '.\tmp\datasets-real\vcdb-f6f98c0.zip'
+    & $py -m scripts.vcdb_review select --archive $zip --per-type 40 --output "$dir\holdout-review-queue.json"
+    & $py -m scripts.vcdb_review init --queue "$dir\holdout-review-queue.json" --output "$dir\holdout-preparation.json"
+
+En la plantilla de preparación, cada fila debe quedar como `include` o `exclude` en `disposition`. Para excluir, escribe el motivo en `exclusion_reason`. Para incluir, registra la fuente, el grupo, el tipo de fuente, el título y la descripción redactados y confirma `redaction_reviewed`. Luego genera el paquete:
+
+    & $py -m scripts.vcdb_review packet --archive $zip --queue "$dir\holdout-review-queue.json" --preparation "$dir\holdout-preparation.json" --output "$dir\holdout-packet"
+
+Comparte `blinded-cases.json` y una planilla distinta con cada revisor. Cada persona rellena su `reviewer` y el `tipo` de todos los casos. Conserva `packet.json` con el coordinador. Si hay discrepancias, registra cada decisión en un JSON con el ID del caso como clave y un objeto con `tipo` y `reason` como valor. La huella del paquete vincula las dos planillas con los textos evaluados.
+
+    & $py -m scripts.vcdb_review freeze --archive $zip --packet "$dir\holdout-packet\packet.json" --review-a "$dir\holdout-packet\review-a.json" --review-b "$dir\holdout-packet\review-b.json" --output "$dir\holdout-reviewed.json"
+
+Si hay discrepancias, añade `--adjudication` con la ruta de ese JSON. Una vez congelado, pasa `holdout-reviewed.json` a `Test-SocDataset.ps1 -Run` mediante `-ReviewedCases` y usa un `RunId` nuevo. Mantén los formularios separados y archívalos junto con el registro de exclusiones para conservar la trazabilidad del estudio.
+
+La evaluación compara tipos con las reglas demo sobre los mismos textos y calcula cobertura, error entre los casos aceptados automáticamente y F1 macro entre las clasificaciones evaluables. Registra por separado fallos de servicio y motivos de revisión. Los plazos se verifican contra la política del sistema. El piloto y las corridas retrospectivas carecen de hitos operativos comparables para estimar horas de trabajo humano ahorradas o mejoras reales de SLA.
 
 ## Datos y configuración
 

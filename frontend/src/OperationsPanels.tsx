@@ -2,12 +2,14 @@ import { FormEvent, useEffect, useState } from "react";
 import { downloadFile, request, type Report, type User } from "./api";
 import { translate } from "./i18n";
 import { TotpPanel } from "./TotpPanel";
+import { peruDateTime } from "./time";
 import { Badge, DataTable, EmptyState, LoadingBlock, type Tone } from "./ui";
 
 interface Props { token: string; language: string; onError: (error: unknown) => void }
 interface Asset { id: string; nombre: string; descripcion: string; activo: number }
 interface Team { nombre: string; contacto: string; disponible: number | null; abiertos: number }
-interface Notice { report_id: string; titulo: string; responsable: string; ocurrido_at: string; read_at: string | null }
+interface Notice { report_id: string; titulo: string; responsable: string | null; ocurrido_at: string; read_at: string | null;
+  accion?: "asignado" | "responder" | "resolver" }
 interface Health { estado: string; servicios: Record<string, string>;
   proveedores?: Record<string, { estado: string; verificado_at: string | null; vigente: boolean; motivo?: string | null }> }
 export type Section = "activos" | "equipos" | "revision" | "notificaciones" | "reglas" | "salud";
@@ -184,20 +186,31 @@ function ReviewPanel(props: Props) {
   </div>;
 }
 
-function NotificationsPanel(props: Props & { openReport: (id: string) => void; onNotificationsChanged: () => void }) {
-  const { language, openReport } = props;
+export function NotificationsPanel(props: Props & { openReport: (id: string) => void; onNotificationsChanged: () => void; ownRequests?: boolean }) {
+  const { language, openReport, ownRequests } = props;
   const s = (es: string, en: string) => language === "es" ? es : en;
-  const { data, busy, load, save } = useModule<Notice[]>("/api/notificaciones", props);
+  const { data, busy, load, save } = useModule<Notice[]>(ownRequests ? "/api/mis-solicitudes/notificaciones" : "/api/notificaciones", props);
+  const noticeLabels = { asignado: s("Equipo asignado", "Team assigned"), responder: s("Primera respuesta registrada", "First response logged"),
+    resolver: s("Solicitud resuelta", "Request resolved") };
   return <div><div className="list-toolbar">
+    {ownRequests && <p className="hint">{s("Actualizaciones de tus solicitudes · Hora de Perú", "Updates on your requests · Peru time")}</p>}
     <button type="button" className="secondary" disabled={busy} onClick={load}>{s("Actualizar", "Refresh")}</button></div>
     {busy && !data && <LoadingBlock label={s("Cargando notificaciones…", "Loading notifications…")} />}
     {data?.length === 0 && <EmptyState>{s("Todavía no hay notificaciones.", "There are no notifications yet.")}</EmptyState>}
-    <div className="report-list">{data?.map(item => <article className="report" data-tone={item.read_at ? "neutral" : "info"} key={item.report_id}>
-      <h4>{item.titulo}</h4><p>{item.responsable} · {new Date(item.ocurrido_at).toLocaleString(language)}</p>
+    <div className="report-list">{data?.map(item => <article className="report" data-tone={item.read_at ? "neutral" : "info"}
+      key={item.accion ? item.report_id + item.accion : item.report_id}>
+      <h4>{item.titulo}</h4><p>{item.accion && <strong>{noticeLabels[item.accion]} · </strong>}
+        {item.responsable && item.responsable + " · "}{peruDateTime(item.ocurrido_at, language)}</p>
       <div className="report-footer">
-        <button type="button" className="secondary" onClick={() => openReport(item.report_id)}>{s("Ver reporte", "View report")}</button>
+        <button type="button" className="secondary" onClick={() => openReport(item.report_id)}>
+          {ownRequests ? s("Ver progreso", "View progress") : s("Ver reporte", "View report")}</button>
         {item.read_at ? <Badge tone="success" icon="check">{s("Leída", "Read")}</Badge> : <button type="button" disabled={busy}
-          onClick={async () => { if (await save("/api/notificaciones/" + item.report_id + "/leida", "PUT")) props.onNotificationsChanged(); }}>{s("Marcar leída", "Mark read")}</button>}
+          onClick={async () => {
+            const path = item.accion
+              ? `/api/mis-solicitudes/${item.report_id}/notificaciones/${item.accion}/leida`
+              : `/api/notificaciones/${item.report_id}/leida`;
+            if (await save(path, "PUT")) props.onNotificationsChanged();
+          }}>{s("Marcar leída", "Mark read")}</button>}
       </div>
     </article>)}</div>
   </div>;
@@ -244,7 +257,7 @@ function RulesPanel(props: Props) {
       {notice && <p role="status">{notice}</p>}
     </form>
     <details className="sla"><summary>{s("Historial de versiones", "Version history")}</summary>
-      <ul>{data.versiones.map(item => <li key={item.id}>{new Date(item.created_at).toLocaleString(language)} · {item.id}{" "}
+      <ul>{data.versiones.map(item => <li key={item.id}>{peruDateTime(item.created_at, language)} · {item.id}{" "}
         <button className="secondary" type="button" onClick={async () => {
           try { setDraft(await request<Version>("/api/reglas/" + item.id, token)); setNotice(""); }
           catch (error) { onError(error); }
@@ -274,12 +287,12 @@ function HealthPanel(props: Props & { admin: boolean }) {
     {busy && !data && <LoadingBlock label={s("Comprobando servicios…", "Checking services…")} />}
     {data && <div className="health-cards">{Object.entries(data.servicios).map(([name, status]) => <article className="health-card" key={name}>
       <h4>{name}</h4><Badge tone={statusTone(status)} icon={status === "ok" ? "check" : "info"}>{status}</Badge>
-      {checkedAt && <p className="hint">{s("Consulta", "Checked")} · {checkedAt.toLocaleString(language)}</p>}
+      {checkedAt && <p className="hint">{s("Consulta", "Checked")} · {peruDateTime(checkedAt, language)}</p>}
     </article>)}</div>}
     <h4>{s("Proveedores cloud", "Cloud providers")}</h4>
     {data?.proveedores && <div className="health-cards">{Object.entries(data.proveedores).map(([name, check]) => <article className="health-card" key={name}>
       <h4>{name}</h4><Badge tone={statusTone(check.estado)} icon={check.estado === "ok" ? "check" : "info"}>{check.estado}</Badge>
-      {check.verificado_at && <p className="hint">{new Date(check.verificado_at).toLocaleString(language)}</p>}
+      {check.verificado_at && <p className="hint">{peruDateTime(check.verificado_at, language)}</p>}
       {check.motivo && <p className="hint">{check.motivo}</p>}
       {check.verificado_at && !check.vigente && <Badge tone="warning">{s("resultado anterior", "stale result")}</Badge>}
     </article>)}</div>}

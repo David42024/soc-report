@@ -7,7 +7,7 @@ from urllib.parse import quote
 from uuid import uuid4
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator
 
 Tipo = Literal[
     "phishing", "malware", "acceso_no_autorizado", "ddos", "fuga_datos",
@@ -29,6 +29,11 @@ class Classification(BaseModel):
     severidad: Severidad
     activo_afectado: str | None = Field(max_length=160)
     confianza: float = Field(ge=0, le=1, allow_inf_nan=False)
+    _provider: Literal["groq", "gemini"] | None = PrivateAttr(default=None)
+
+    @property
+    def provider(self):
+        return self._provider
 
     @field_validator("activo_afectado")
     @classmethod
@@ -83,10 +88,15 @@ def langflow_classify(text, settings) -> Classification:
             },
         )
         response.raise_for_status()
-    result = response.json()["outputs"][0]["outputs"][0]["results"]["message"]["text"]
+    message = response.json()["outputs"][0]["outputs"][0]["results"]["message"]
+    result = message["text"]
     if not isinstance(result, str) or len(result) > 4096:
         raise ValueError("Salida del clasificador inválida.")
-    return Classification.model_validate(json.loads(result))
+    classification = Classification.model_validate(json.loads(result))
+    metadata = message.get("session_metadata")
+    if isinstance(metadata, dict) and metadata.get("soc_provider") in ("groq", "gemini"):
+        classification._provider = metadata["soc_provider"]
+    return classification
 
 
 def classify(titulo, descripcion, settings, *, threshold=0.75):

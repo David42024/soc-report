@@ -18,6 +18,12 @@ function Test-Http([string]$Url) {
         try { return $response.IsSuccessStatusCode } finally { $response.Dispose() }
     } catch { return $false }
 }
+function Test-DockerEngine {
+    # Windows PowerShell wraps native stderr as a PowerShell error.
+    $ErrorActionPreference='SilentlyContinue'
+    & docker version --format '{{.Server.Version}}' 2>$null | Out-Null
+    return ($LASTEXITCODE -eq 0)
+}
 function Start-Native([string]$Name,[string]$Executable,[string]$Arguments) {
     Write-Stage $Name 'Iniciando.'
     $options=@{FilePath=$Executable;ArgumentList=$Arguments;WorkingDirectory=$root;WindowStyle='Hidden';PassThru=$true;RedirectStandardOutput=(Join-Path $logs "$Name.out.log");RedirectStandardError=(Join-Path $logs "$Name.err.log")}
@@ -49,17 +55,16 @@ Push-Location -LiteralPath $root
 try {
     New-Item -ItemType Directory -Force $logs | Out-Null
     Write-Stage 'Docker' 'Comprobando motor.'
-    & docker version --format '{{.Server.Version}}' 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    if (-not (Test-DockerEngine)) {
         Start-Process -FilePath 'C:/Program Files/Docker/Docker/Docker Desktop.exe' -WindowStyle Hidden
         $watch=[Diagnostics.Stopwatch]::StartNew()
         do {
             Start-Sleep -Seconds 3
-            & docker version --format '{{.Server.Version}}' 2>$null
-            if ($LASTEXITCODE -eq 0) { break }
+            $dockerReady=Test-DockerEngine
+            if ($dockerReady) { break }
             Write-Stage 'Docker' 'Esperando al motor.'
         } while ($watch.Elapsed.TotalSeconds -lt $TimeoutSeconds)
-        if ($LASTEXITCODE -ne 0) { throw 'Docker no pudo iniciar. Revisa Docker Desktop.' }
+        if (-not $dockerReady) { throw 'Docker no pudo iniciar. Revisa Docker Desktop.' }
     }
     if (-not (Test-Path -LiteralPath $envFile)) {
         Write-Stage 'Configuración' 'Preparando contenedores y copias de seguridad.'

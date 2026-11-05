@@ -1,0 +1,95 @@
+{
+  "revision": "f6f98c00f66ab35f5b49977a5852ce94a5bb31d1",
+  "stage": "pilot",
+  "sampling": "Ocho incidentes publicados y registrados en VCDB. Selección de conveniencia para comprobar el flujo, con dos casos por tipo. Paráfrasis en español de resúmenes retrospectivos, revisadas para retirar identificadores y detalles sensibles.",
+  "cases": [
+    {
+      "source_id": "34a8a647-3f7c-412a-b152-bd6a53f116af",
+      "source_url": "http://pilotonline.com/news/local/crime/data-breach-exposes-information-on-more-than-tcc-employees/article_6ab72a2f-52a0-533e-8060-a2d245c7f151.html",
+      "group": "solicitud-finanzas-centro-educativo",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Solicitud de información al área de finanzas",
+      "descripcion": "Una cuenta de correo falsa que se hacía pasar por la institución pidió datos del personal al área de finanzas. Un integrante del área respondió al mensaje.",
+      "tipo": "phishing",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "phishing"}]
+    },
+    {
+      "source_id": "a1d4f272-602a-49a5-ad30-2470f2e18e3e",
+      "source_url": "http://www.scmagazineuk.com/spearphishing-attack-nets-hundreds-of-thousands-from-investment-firm/article/494753/",
+      "group": "orden-transferencia-firma-inversion",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Mensaje dirigido con una orden de transferencia",
+      "descripcion": "Un mensaje engañoso dirigido a un empleado de una firma de inversiones logró que iniciara una transferencia de dinero.",
+      "tipo": "phishing",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "phishing"}]
+    },
+    {
+      "source_id": "10a7cc09-eabf-45e6-ae2f-f35bec70f118",
+      "source_url": "https://krebsonsecurity.com/2019/08/ransomware-bites-dental-data-backup-firm/",
+      "group": "respaldos-consultorios",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Datos inaccesibles en el servicio de copias",
+      "descripcion": "Un programa malicioso cifró los datos de clientes alojados en un proveedor de respaldos en la nube. Se exigió un pago para recuperarlos.",
+      "tipo": "malware",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "malware"}]
+    },
+    {
+      "source_id": "e1f4c99f-7f2f-42af-baa0-ae5637045720",
+      "source_url": "https://www.cybersecurity-insiders.com/maze-ransomware-attack-on-maxlinear-inc/",
+      "group": "cifrado-fabricante-semiconductores",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Incidente informático en un fabricante",
+      "descripcion": "Un fabricante de semiconductores comunicó un incidente causado por ransomware.",
+      "tipo": "malware",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "malware"}]
+    },
+    {
+      "source_id": "59bddef4-a79f-4088-9fec-180af80e0f7f",
+      "source_url": "https://jfrog.com/help/r/salesforce-data-incident-identified-linked-to-third-party-salesloft-drift/salesforce-data-incident-identified-linked-to-third-party-salesloft-drift",
+      "group": "conector-tercero-soporte",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Acceso externo a registros de soporte",
+      "descripcion": "Un proveedor notificó un acceso no autorizado al sistema de soporte. La investigación identificó que alguien consultó registros mediante un conector de terceros.",
+      "tipo": "acceso_no_autorizado",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "acceso_no_autorizado"}]
+    },
+    {
+      "source_id": "e4e18948-f363-453e-8699-5b66866539ff",
+      "source_url": "http://doj.nh.gov/consumer/security-breaches/documents/citibank-20120313.pdf",
+      "group": "ingresos-banca-web",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Accesos a la banca web de clientes",
+      "descripcion": "Se utilizaron credenciales sustraídas a un tercero para ingresar en la banca web de varios clientes sin su autorización.",
+      "tipo": "acceso_no_autorizado",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "acceso_no_autorizado"}]
+    },
+    {
+      "source_id": "53bc4282-98c5-4655-b806-568677ebbc22",
+      "source_url": "http://wcfcourier.com/news/local/allen-hospital-in-waterloo-reports-patient-data-breach/article_6d73a29a-9ae6-5c39-bbc5-bc8876b6e8b2.html",
+      "group": "consultas-expedientes-hospital",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Consultas de expedientes fuera de las funciones asignadas",
+      "descripcion": "Una persona del hospital usó su acceso de trabajo para consultar expedientes de pacientes que no estaban a su cargo.",
+      "tipo": "uso_indebido",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "uso_indebido"}]
+    },
+    {
+      "source_id": "b2e18ea8-82c4-4711-a94a-716b26409657",
+      "source_url": "http://www.oag.state.md.us/idtheft/Breach%20Notices/ITU159171.pdf",
+      "group": "uso-datos-centro-llamadas",
+      "source_stage": "retrospective_summary",
+      "redaction_reviewed": true,
+      "titulo": "Uso indebido de datos por personal de atención",
+      "descripcion": "Un agente del centro de llamadas aprovechó su acceso laboral a datos de tarjetas de clientes para utilizarlos de forma fraudulenta.",
+      "tipo": "uso_indebido",
+      "reviews": [{"reviewer": "revision-piloto", "tipo": "uso_indebido"}]
+    }
+  ]
+}

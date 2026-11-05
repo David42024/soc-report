@@ -43,10 +43,26 @@ CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('administrador', 'analista', 'gestor', 'auditor')),
+    role TEXT NOT NULL CONSTRAINT users_role_check CHECK (role IN ('administrador', 'analista', 'gestor', 'auditor', 'solicitante')),
     active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),
     token_version INTEGER NOT NULL DEFAULT 0,
     creado_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS report_requesters (
+    report_id TEXT PRIMARY KEY REFERENCES reports(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS report_requesters_user_idx ON report_requesters (user_id);
+
+CREATE TABLE IF NOT EXISTS request_notification_reads (
+    user_id TEXT NOT NULL REFERENCES users(id),
+    report_id TEXT NOT NULL,
+    accion TEXT NOT NULL CHECK (accion IN ('asignado', 'responder', 'resolver')),
+    read_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (user_id, report_id, accion),
+    FOREIGN KEY (report_id, accion) REFERENCES bitacora(report_id, accion) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS auth_sessions (

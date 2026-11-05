@@ -17,11 +17,20 @@ class ClassificationTests(unittest.TestCase):
         self.settings = Settings(classifier_mode="langflow", operator_token="operator-test",
                                  langflow_flow_id="test flow", langflow_api_key="langflow-test")
 
-    def classify_with(self, content):
-        payload = {"outputs": [{"outputs": [{"results": {"message": {"text": content}}}]}]}
+    def classify_with(self, content, **metadata):
+        payload = {"outputs": [{"outputs": [{"results": {"message": {"text": content, **metadata}}}]}]}
         response = httpx.Response(200, json=payload, request=httpx.Request("POST", "http://langflow.test"))
         with patch("backend.classifier.httpx.Client.post", return_value=response):
             return classify("Reporte recibido", "Un reporte de prueba.", self.settings)
+
+    def test_provider_metadata_is_optional_allowlisted_and_outside_the_contract(self):
+        for metadata, expected in (({"soc_provider": "groq"}, "groq"),
+                                   ({"soc_provider": "gemini"}, "gemini"),
+                                   ({"soc_provider": "invalid"}, None), (None, None)):
+            with self.subTest(metadata=metadata):
+                result, origin, reason = self.classify_with(json.dumps(VALID), session_metadata=metadata)
+                self.assertEqual((result.provider, origin, reason), (expected, "langflow", None))
+                self.assertEqual(result.model_dump(), VALID)
 
     def test_demo_classifies_supported_categories_and_normalizes_accents(self):
         for description, category, severity in (

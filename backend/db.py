@@ -21,6 +21,15 @@ LEFT JOIN assignments a ON a.report_id = r.id
 LEFT JOIN bitacora n ON n.report_id = r.id AND n.accion = 'notificacion'
 """
 
+REQUEST_PROGRESS = """
+SELECT r.id, r.titulo, r.descripcion, r.recibido_at, a.responsable, a.asignado_at,
+       a.vence_respuesta_at, a.vence_resolucion_at, a.respondido_at, a.resuelto_at
+FROM report_requesters owner
+JOIN reports r ON r.id = owner.report_id
+LEFT JOIN assignments a ON a.report_id = r.id
+WHERE owner.user_id = %s
+"""
+
 
 def utc_now():
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
@@ -46,13 +55,16 @@ class Database:
                 connection.execute("PRAGMA foreign_keys = ON")
 
     @contextmanager
-    def session(self, *, write=False):
+    def session(self, *, write=False, schema_upgrade=False):
         with self.engine.connect() as connection:
             def execute(query, params=()):
                 pieces = query.split("%s")
                 statement = pieces[0] + "".join(f":p{i}" + part for i, part in enumerate(pieces[1:]))
                 return connection.execute(text(statement), {f"p{i}": value for i, value in enumerate(params)}).mappings()
 
+            sqlite_upgrade = schema_upgrade and not self.url
+            if sqlite_upgrade:
+                connection.exec_driver_sql("PRAGMA foreign_keys = OFF")
             try:
                 if write and not self.url:
                     connection.exec_driver_sql("BEGIN IMMEDIATE")
@@ -65,11 +77,14 @@ class Database:
             except Exception:
                 connection.rollback()
                 raise
+            finally:
+                if sqlite_upgrade:
+                    connection.exec_driver_sql("PRAGMA foreign_keys = ON")
 
     def initialize(self):
         schema = (ROOT / "db" / "schema.sql").read_text(encoding="utf-8")
         fingerprint = sha256((schema + getsource(self.upgrade_columns) + getsource(self.install_audit_triggers)).encode()).hexdigest()
-        with self.session(write=True) as execute:
+        with self.session(write=True, schema_upgrade=True) as execute:
             if self.url:
                 execute("SELECT pg_advisory_xact_lock(640256167)")
                 tables = {row["table_name"] for row in execute("SELECT table_name FROM information_schema.tables WHERE table_schema=current_schema() AND table_type='BASE TABLE'")}
@@ -81,16 +96,17 @@ class Database:
                     return
             if tables:
                 backup_database(self)
-            for statement in schema.split(";"):
-                if statement.strip():
+            for statement in map(str.strip, schema.split(";")):
+                if statement:
                     execute(statement)
-            self.upgrade_columns(execute)
+            users_definition = next(s.strip() for s in schema.split(";") if s.strip().startswith("CREATE TABLE IF NOT EXISTS users ("))
+            self.upgrade_columns(execute, users_definition)
             self.install_audit_triggers(execute)
             execute("CREATE TABLE IF NOT EXISTS soc_schema_revision (id INTEGER PRIMARY KEY, fingerprint TEXT NOT NULL)")
             execute("""INSERT INTO soc_schema_revision (id,fingerprint) VALUES (1,%s)
                 ON CONFLICT (id) DO UPDATE SET fingerprint=excluded.fingerprint""", (fingerprint,))
 
-    def upgrade_columns(self, execute):
+    def upgrade_columns(self, execute, users_definition):
         def columns(table):
             if self.url:
                 rows = execute("""SELECT column_name FROM information_schema.columns
@@ -106,6 +122,23 @@ class Database:
         if "outcome" not in audit_columns:
             execute("ALTER TABLE audit_log ADD COLUMN outcome TEXT")
         execute("CREATE INDEX IF NOT EXISTS audit_request_idx ON audit_log (request_id)")
+        if self.url:
+            role_check = execute("""SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint
+                WHERE conrelid='users'::regclass AND conname='users_role_check'""").fetchone()
+            if not role_check or "'solicitante'" not in role_check["definition"]:
+                execute("""ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check,
+                    ADD CONSTRAINT users_role_check
+                    CHECK (role IN ('administrador', 'analista', 'gestor', 'auditor', 'solicitante'))""")
+        else:
+            definition = execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").fetchone()["sql"]
+            if "'solicitante'" not in definition:
+                execute(users_definition.replace("CREATE TABLE IF NOT EXISTS users (", "CREATE TABLE users_upgrade (", 1))
+                fields = "id, username, password_hash, role, active, token_version, creado_at"
+                execute(f"INSERT INTO users_upgrade ({fields}) SELECT {fields} FROM users")
+                execute("DROP TABLE users")
+                execute("ALTER TABLE users_upgrade RENAME TO users")
+            if execute("PRAGMA foreign_key_check").first():
+                raise RuntimeError("La migración SQLite dejó referencias inválidas.")
 
     def report(self, report_id):
         with self.session() as execute:
@@ -119,6 +152,45 @@ class Database:
                     REPORTS + " ORDER BY r.recibido_at DESC, r.id LIMIT 100"
                 ).fetchall()
             ]
+
+    def request_owner(self, report_id):
+        with self.session() as execute:
+            row = execute("SELECT user_id FROM report_requesters WHERE report_id = %s", (report_id,)).fetchone()
+            return row["user_id"] if row else None
+
+    def request_progress(self, user_id, report_id=None):
+        with self.session() as execute:
+            if report_id is not None:
+                row = execute(REQUEST_PROGRESS + " AND r.id = %s", (user_id, report_id)).fetchone()
+                return dict(row) if row else None
+            rows = execute(REQUEST_PROGRESS + " ORDER BY r.recibido_at DESC, r.id", (user_id,)).fetchall()
+            return [dict(row) for row in rows]
+
+    def request_notifications(self, user_id, limit):
+        with self.session() as execute:
+            rows = execute("""SELECT b.report_id, r.titulo, a.responsable, b.accion, b.ocurrido_at, n.read_at
+                FROM report_requesters owner
+                JOIN reports r ON r.id = owner.report_id
+                JOIN bitacora b ON b.report_id = owner.report_id
+                LEFT JOIN assignments a ON a.report_id = owner.report_id
+                LEFT JOIN request_notification_reads n ON n.user_id = owner.user_id
+                    AND n.report_id = b.report_id AND n.accion = b.accion
+                WHERE owner.user_id = %s AND b.accion IN ('asignado', 'responder', 'resolver')
+                ORDER BY b.ocurrido_at DESC, b.report_id, b.accion LIMIT %s""", (user_id, limit))
+            return [dict(row) for row in rows]
+
+    def mark_request_notification_read(self, user_id, report_id, action):
+        with self.session(write=True) as execute:
+            exists = execute("""SELECT 1 FROM report_requesters owner
+                JOIN bitacora b ON b.report_id = owner.report_id
+                WHERE owner.user_id = %s AND owner.report_id = %s AND b.accion = %s""",
+                (user_id, report_id, action)).first()
+            if not exists:
+                return False
+            execute("""INSERT INTO request_notification_reads (user_id, report_id, accion, read_at)
+                VALUES (%s, %s, %s, %s) ON CONFLICT (user_id, report_id, accion) DO NOTHING""",
+                (user_id, report_id, action, utc_now()))
+            return True
 
     def audit(self, report_id):
         with self.session() as execute:
@@ -146,7 +218,7 @@ class Database:
             (report_id, action, actor, utc_now(), details),
         )
 
-    def save_report(self, report_id, payload, result, origin, reason, received_at, version_id=None):
+    def save_report(self, report_id, payload, result, origin, reason, received_at, version_id=None, requester_id=None):
         with self.session(write=True) as execute:
             row = execute(
                 """INSERT INTO reports (
@@ -158,13 +230,17 @@ class Database:
                  result.activo_afectado, result.confianza, origin, reason, received_at, utc_now()),
             ).fetchone()
             if row:
+                if requester_id:
+                    execute("INSERT INTO report_requesters (report_id,user_id) VALUES (%s,%s)", (report_id, requester_id))
                 if version_id:
                     execute("INSERT INTO report_routing_versions (report_id,version_id) VALUES (%s,%s)", (report_id, version_id))
                 self.event(execute, report_id, "recibido", "formulario", "Reporte registrado.")
-                self.event(
-                    execute, report_id, "clasificado", origin,
-                    f"{result.tipo} / {result.severidad}" + (f" / {reason}" if reason else ""),
-                )
+                detail = f"{result.tipo} / {result.severidad}"
+                if reason:
+                    detail += f" / {reason}"
+                if result.provider:
+                    detail += f" / proveedor={result.provider}"
+                self.event(execute, report_id, "clasificado", origin, detail)
             return row is not None
 
     def assign(self, report, rule, actor):
@@ -261,7 +337,7 @@ class Database:
                 "reports", "assignments", "users", "bitacora", "triage_baselines", "triage_measurements",
                 "demo_impact_history", "routing_versions", "report_reviews", "assets",
                 "team_directory", "report_comments", "report_attachments", "notification_reads",
-                "impact_studies", "impact_observations",
+                "impact_studies", "impact_observations", "report_requesters",
             ):
                 execute(f"DROP TRIGGER IF EXISTS soc_change ON {table}")
                 execute(f"CREATE TRIGGER soc_change AFTER INSERT OR UPDATE OR DELETE ON {table} FOR EACH ROW EXECUTE FUNCTION soc_audit_change()")
