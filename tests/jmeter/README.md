@@ -10,6 +10,8 @@ Busca **Apache JMeter 5.6.3** en el menú Inicio. La instalación de este equipo
 
 Abre `soc-jdbc.jmx` con **Archivo → Abrir**. Despliega **Usuarios de JDBC**, selecciona **Gráfico de resultados** y pulsa **Navegar** para cargar el archivo `resultados.jtl` de tu ejecución. El lanzador crea una carpeta en `tmp/jmeter/` por cada ejecución. Puedes conservar una copia en `output/jmeter/` para consultarla después.
 
+El repositorio incluye las [ejecuciones iniciales de 0 y 5 segundos](../../output/jmeter/) y las [dos repeticiones posteriores](../../output/jmeter/20261110-100131-repeticion-gui/). El [informe PDF](../../output/pdf/resultados-jmeter-gui.pdf) resume las ejecuciones iniciales. Los cuatro JTL contienen 48 muestras correctas cada uno y no guardan cuerpos de respuesta, filas de la base ni credenciales.
+
 ## Ejecutar contra la base de SOC
 
 Con el motor de Docker en ejecución, inicia PostgreSQL desde la raíz del proyecto. El archivo `.venv/soc-runtime/compose.env` se genera durante la preparación normal de SOC.

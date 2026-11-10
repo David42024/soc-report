@@ -1,0 +1,49 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-3,text,true,,770,0,8,8,null,810,0,788
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-4,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-8,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-1,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-5,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-2,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-6,text,true,,770,0,8,8,null,810,0,786
+1794322891841,812,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-7,text,true,,770,0,8,8,null,810,0,786
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-3,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-6,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-2,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-8,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-5,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-7,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-1,text,true,,460,0,8,8,null,3,0,0
+1794322893656,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-4,text,true,,460,0,8,8,null,3,0,0
+1794322894661,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-5,text,true,,770,0,8,8,null,2,0,0
+1794322894660,3,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-6,text,true,,770,0,8,8,null,3,0,0
+1794322894660,3,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-3,text,true,,770,0,8,8,null,3,0,0
+1794322894661,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-1,text,true,,770,0,8,8,null,2,0,0
+1794322894660,3,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-2,text,true,,770,0,8,8,null,3,0,0
+1794322894661,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-8,text,true,,770,0,8,8,null,2,0,0
+1794322894661,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-7,text,true,,770,0,8,8,null,2,0,0
+1794322894661,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-4,text,true,,770,0,8,8,null,2,0,0
+1794322895670,2,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-1,text,true,,460,0,8,8,null,2,0,0
+1794322895669,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-3,text,true,,460,0,8,8,null,3,0,0
+1794322895670,2,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-2,text,true,,460,0,8,8,null,2,0,0
+1794322895670,2,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-4,text,true,,460,0,8,8,null,2,0,0
+1794322895669,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-8,text,true,,460,0,8,8,null,3,0,0
+1794322895670,2,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-5,text,true,,460,0,8,8,null,2,0,0
+1794322895669,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-6,text,true,,460,0,8,8,null,3,0,0
+1794322895670,2,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-7,text,true,,460,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-6,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-7,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-8,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-3,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-4,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-5,text,true,,770,0,8,8,null,2,0,0
+1794322896680,2,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-1,text,true,,770,0,8,8,null,2,0,0
+1794322896680,3,Primeros 1000 reportes,200,OK,Usuarios de JDBC 1-2,text,true,,770,0,8,8,null,2,0,0
+1794322897685,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-3,text,true,,460,0,8,8,null,3,0,0
+1794322897685,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-4,text,true,,460,0,8,8,null,3,0,0
+1794322897685,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-6,text,true,,460,0,8,8,null,3,0,0
+1794322897685,3,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-8,text,true,,460,0,8,8,null,3,0,0
+1794322897685,4,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-7,text,true,,460,0,5,5,null,4,0,0
+1794322897685,4,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-2,text,true,,460,0,4,4,null,4,0,0
+1794322897685,4,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-5,text,true,,460,0,4,4,null,4,0,0
+1794322897685,5,Títulos de todos los reportes,200,OK,Usuarios de JDBC 1-1,text,true,,460,0,1,1,null,5,0,0
