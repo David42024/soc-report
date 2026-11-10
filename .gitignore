@@ -14,6 +14,17 @@ frontend/dist/
 /tmp/
 /docs/diseno/
 
+# Instalación, controlador y bitácoras locales de JMeter.
+apache-jmeter-*/
+apache-jmeter-*.zip
+apache-jmeter-*.tgz
+postgresql-*.jar
+jmeter.log
+
+# Mediciones locales realizadas sobre la base de SOC.
+/output/jmeter/
+/output/pdf/resultados-jmeter-gui.pdf
+
 # Figuras y controles generados al reproducir el articulo.
 /output/articulo-soc/supplementary/figure-*
 /output/articulo-soc/supplementary/quality-report.json
