@@ -5,9 +5,16 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from docx import Document
+from docx.document import Document as WordDocument
 from docx.shared import RGBColor
 from openpyxl import Workbook
 from fastapi import HTTPException
+
+EXPORT_MIME = {
+    "pdf": "application/pdf",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
 
 FIELDS = [
     ("id", "ID"), ("titulo", "Título"), ("tipo", "Tipo"), ("severidad", "Severidad"),
@@ -16,6 +23,21 @@ FIELDS = [
     ("respondido_at", "Primera respuesta"), ("vence_resolucion_at", "Límite de resolución"),
     ("resuelto_at", "Resolución"), ("motivo_revision", "Motivo de revisión"),
 ]
+
+
+def office_bytes(document: WordDocument | Workbook) -> bytes:
+    """Serialize an editable Office document using the operational export engines."""
+    output = BytesIO()
+    document.save(output)
+    return output.getvalue()
+
+
+def pdf_bytes(content: str) -> bytes:
+    """Render an HTML report with the SOC's WeasyPrint engine."""
+    from weasyprint import HTML
+
+    return HTML(string=content).write_pdf()
+
 
 def display_value(key, value):
     if value is None:
@@ -33,7 +55,6 @@ def display_value(key, value):
 def export_report(reports, metrics, format_name, *, fields=None, title="Reportes de incidentes SOC"):
     if len(reports) > 10000:
         raise HTTPException(413, "La exportación admite hasta 10000 reportes.")
-    output = BytesIO()
     columns = fields or FIELDS
     if format_name == "xlsx":
         workbook = Workbook()
@@ -53,8 +74,7 @@ def export_report(reports, metrics, format_name, *, fields=None, title="Reportes
         kpis.append(["Indicador", "Valor"])
         for key, value in metrics.items():
             kpis.append([key, value])
-        workbook.save(output)
-        return output.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        return office_bytes(workbook), EXPORT_MIME["xlsx"]
     if format_name == "docx":
         document = Document()
         for name in ("Title", "Heading 1", "Heading 2"):
@@ -69,17 +89,14 @@ def export_report(reports, metrics, format_name, *, fields=None, title="Reportes
             for report in reports:
                 for cell, (key, _) in zip(table.add_row().cells, columns):
                     cell.text = display_value(key, report.get(key))
-            document.save(output)
-            return output.getvalue(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            return office_bytes(document), EXPORT_MIME["docx"]
         for report in reports:
             document.add_heading(report["titulo"], 1)
             document.add_paragraph(report["descripcion"])
             for key, label in FIELDS:
                 document.add_paragraph(f"{label} · {display_value(key, report.get(key))}")
-        document.save(output)
-        return output.getvalue(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        return office_bytes(document), EXPORT_MIME["docx"]
     if format_name == "pdf":
-        from weasyprint import HTML
         pdf_columns = fields or [(key, label) for key, label in FIELDS if key in
                                   ("titulo", "tipo", "severidad", "responsable", "respondido_at", "resuelto_at")]
         headings = "".join(f"<th>{escape(label)}</th>" for _, label in pdf_columns)
@@ -93,5 +110,5 @@ def export_report(reports, metrics, format_name, *, fields=None, title="Reportes
         td,th {border:1px solid #b9c9c4;padding:6pt;overflow-wrap:anywhere;text-align:left}
         th {background:#e6f0ec} thead {display:table-header-group} tr {break-inside:avoid}</style>
         """ + f"<h1>{escape(title)}</h1><p>Filas incluidas {len(reports)} · Horas de Perú (UTC−5)</p><table><thead><tr>{headings}</tr></thead><tbody>{rows}</tbody></table></html>"
-        return HTML(string=content).write_pdf(), "application/pdf"
+        return pdf_bytes(content), EXPORT_MIME["pdf"]
     raise HTTPException(404, "Formato no disponible.")

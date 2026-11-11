@@ -77,7 +77,8 @@ class CloudModelTests(unittest.IsolatedAsyncioTestCase):
     async def test_primary_success_does_not_send_the_report_to_gemini(self):
         result = await self.run_model(httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]}))
         self.assertEqual((result.text, self.model.status, self.hosts), ("{}", "Groq", ["api.groq.com"]))
-        self.assertEqual(result.session_metadata, {"soc_provider": "groq"})
+        self.assertEqual(result.session_metadata["soc_provider"], "groq")
+        self.assertEqual(result.session_metadata["soc_privacy"]["status"], "protected")
 
     async def test_transient_errors_use_gemini_and_ignore_thought_parts(self):
         def timed_out(request):
@@ -91,7 +92,8 @@ class CloudModelTests(unittest.IsolatedAsyncioTestCase):
                 ]}}]})
                 result = await self.run_model(failure, gemini)
                 self.assertEqual((result.text, self.model.status), ("{}", "Gemini"))
-                self.assertEqual(result.session_metadata, {"soc_provider": "gemini"})
+                self.assertEqual(result.session_metadata["soc_provider"], "gemini")
+                self.assertEqual(result.session_metadata["soc_privacy"]["status"], "protected")
                 self.assertEqual(self.hosts, ["api.groq.com", "generativelanguage.googleapis.com"])
 
     async def test_permanent_provider_errors_and_bad_responses_use_gemini(self):
@@ -105,22 +107,34 @@ class CloudModelTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(self.hosts, ["api.groq.com", "generativelanguage.googleapis.com"])
 
     async def test_content_policy_rejection_does_not_try_the_other_provider(self):
-        with self.assertRaisesRegex(ValueError, "Groq.*HTTP 400"):
-            await self.run_model(httpx.Response(400, json={"error": {"code": "content_policy_violation"}}))
+        result = await self.run_model(httpx.Response(400, json={"error": {"code": "content_policy_violation"}}))
+        self.assertEqual(json.loads(result.text)["confianza"], 0.0)
+        self.assertIsNone(result.session_metadata["soc_provider"])
+        self.assertEqual(result.session_metadata["soc_trace"]["review_reason"], "rechazo_politica_proveedor")
+        self.assertFalse(result.session_metadata["soc_trace"]["technical_fallback"])
         self.assertEqual(self.hosts, ["api.groq.com"])
 
     async def test_gemini_failure_is_sanitized(self):
         def offline(request):
             raise httpx.ConnectError("synthetic secret in upstream error", request=request)
 
-        for response, reason in (
-            (httpx.Response(503, text="upstream payload"), "Gemini.*HTTP 503"),
-            (offline, "Gemini no respondió"),
-            (httpx.Response(200, json={"candidates": []}), "respuesta inválida"),
-            (httpx.Response(200, json={"candidates": [{"content": {"parts": []}}]}), "respuesta vacía"),
+        for response, attempts in (
+            (httpx.Response(503, text="upstream payload"), 3),
+            (offline, 3),
+            (httpx.Response(200, json={"candidates": []}), 2),
+            (httpx.Response(200, json={"candidates": [{"content": {"parts": []}}]}), 2),
         ):
-            with self.subTest(reason=reason), self.assertRaisesRegex(ValueError, reason):
-                await self.run_model(httpx.Response(429), response)
+            with self.subTest(response=response):
+                self.hosts.clear()
+                result = await self.run_model(httpx.Response(429), response)
+                metadata = result.session_metadata
+                self.assertEqual(json.loads(result.text), {"tipo": "otro", "severidad": "media", "activo_afectado": None, "confianza": 0.0})
+                self.assertIsNone(metadata["soc_provider"])
+                self.assertEqual(metadata["soc_trace"]["review_reason"], "proveedores_no_disponibles")
+                self.assertEqual(len(metadata["soc_trace"]["attempts"]), attempts)
+                self.assertEqual(len(self.hosts), attempts)
+                self.assertNotIn("synthetic secret", json.dumps(metadata))
+                self.assertNotIn("upstream payload", json.dumps(metadata))
 
     async def test_gemini_retries_a_single_transient_failure(self):
         def gemini(request):

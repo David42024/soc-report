@@ -136,7 +136,7 @@ def reset_seed_data():
                     "impact_observations", "impact_studies", "triage_measurements",
                     "request_notification_reads", "report_comments", "report_attachments",
                     "notification_reads", "report_requesters", "report_routing_versions",
-                    "report_reviews", "bitacora", "assignments", "reports",
+                    "report_reviews", "report_ai_inputs", "bitacora", "assignments", "reports",
                     "demo_impact_history", "triage_baselines",
                 ):
                     execute(f"DELETE FROM {table}")

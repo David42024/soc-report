@@ -1,0 +1,68 @@
+version: 1
+datasets:
+  - id: vcdb_original
+    name: VERIS VCDB original
+    kind: vcdb_archive
+    path: tmp/datasets-real/vcdb-f6f98c0.zip
+    provenance: Incidentes públicos históricos; revisión y SHA-256 fijados en scripts/vcdb.py.
+    labels: [action]
+    preview_columns: [incident_id, security_incident]
+    limitation: Las acciones VERIS producen etiquetas provisionales; requieren revisión y no cubren toda la taxonomía SOC.
+  - id: vcdb_pilot
+    name: Piloto VCDB revisado
+    kind: json_cases
+    path: integrations/dataset/vcdb-pilot.json
+    provenance: Paráfrasis en español de resúmenes retrospectivos; manifiesto original del proyecto.
+    labels: [tipo, severidad, activo_afectado]
+    preview_columns: [source_id, group, tipo, severidad, activo_afectado]
+    limitation: La cobertura por campo y el número de revisores se comprueban en el manifiesto original.
+  - id: vcdb_index
+    name: Índice existente de candidatos VCDB
+    kind: json_index
+    path: .venv/soc-runtime/dataset/preview.json
+    provenance: Índice generado por scripts/soc_dataset.py a partir de la revisión fijada de VCDB.
+    labels: [suggested_types]
+    preview_columns: [source_id, incident_date_parts, suggested_partition]
+    limitation: Las sugerencias son provisionales. La cola reservada identifica los casos efectivamente separados para revisión.
+  - id: vcdb_holdout_queue
+    name: Candidatos VCDB reservados
+    kind: json_cases
+    path: .venv/soc-runtime/dataset/holdout-review-queue.json
+    provenance: Preselección reproducible con exclusión de pilotos y fuentes compartidas.
+    labels: []
+    preview_columns: [source_id, incident_date_parts]
+    limitation: Candidatos pendientes de revisión independiente; no constituyen un conjunto de prueba congelado.
+  - id: vcdb_holdout_preparation
+    name: Preparación del conjunto reservado
+    kind: json_cases
+    path: .venv/soc-runtime/dataset/holdout-preparation.json
+    provenance: Plantilla existente para inclusión, redacción y agrupación de los candidatos.
+    labels: []
+    preview_columns: [source_id, disposition, group, redaction_reviewed]
+    limitation: La existencia de la plantilla no acredita que los casos estén preparados ni etiquetados.
+  - id: eurepoc
+    name: EuRepoC 1.3.2
+    kind: csv
+    path: tmp/datasets-real/eurepoc_global_dataset_1_3.csv
+    revision: "1.3.2"
+    provenance: Snapshot local ya existente; exploración previa en tmp/datasets-real/check_fit.py.
+    labels: [incident_type]
+    preview_columns: [incident_id, incident_type, start_date]
+    limitation: Su taxonomía original requiere validación antes de relacionarla con las clases del sistema SOC.
+  - id: article_simulation
+    name: Simulación del artículo
+    kind: csv
+    path: output/articulo-soc/supplementary/synthetic-cases.csv
+    synthetic: true
+    revision: "semilla 20261103"
+    provenance: Simulación preexistente del artículo; valores asumidos, no observaciones operativas.
+    labels: [type_truth, severity_index]
+    preview_columns: [synthetic_id, type_truth, severity_index]
+    limitation: Datos sintéticos identificados explícitamente; no acreditan desempeño ni impacto operacional real.
+  - id: operational_reports
+    name: Reportes operativos autorizados
+    kind: api_reports
+    provenance: PostgreSQL mediante GET /api/reportes y la sesión JWT existente.
+    labels: [tipo, severidad, activo_afectado]
+    preview_columns: [id, tipo, severidad, activo_afectado, confianza, origen]
+    limitation: El endpoint devuelve hasta 100 reportes recientes. Las predicciones y los casos DEMO no son etiquetas verdaderas verificadas. Confianza es un puntaje operacional, no una probabilidad calibrada. El origen fallback indica revisión protectora y no identifica a Gemini.

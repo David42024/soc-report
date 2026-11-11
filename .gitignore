@@ -28,3 +28,13 @@ jmeter.log
 # Figuras y controles generados al reproducir el articulo.
 /output/articulo-soc/supplementary/figure-*
 /output/articulo-soc/supplementary/quality-report.json
+
+# Analytical sessions, logs, model artifacts and local experiment evidence.
+/runs/
+/.pytest_cache/
+.streamlit/secrets.toml
+/htmlcov/
+.coverage
+*.joblib
+*.pkl
+*.parquet

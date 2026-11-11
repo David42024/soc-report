@@ -57,13 +57,15 @@ def source_key(url):
     return parts.hostname.removeprefix("www."), parts.path.rstrip("/").casefold()
 
 
-def exposed(eligible):
+def exposed(eligible: dict, *, pilot_file: Path | None = None, exclusions_file: Path | None = None,
+            output_directory: Path | None = None) -> tuple[set[str], set[tuple[str, str]]]:
+    """Return prior pilot identifiers and source paths, including stored executions."""
     inputs = ROOT / "integrations/dataset"
-    ids = set(read_json(inputs / "vcdb-pilot-exclusions.json")["source_ids"])
-    ids.update(row["source_id"] for row in read_json(inputs / "vcdb-pilot.json")["cases"])
+    ids = set(read_json(exclusions_file or inputs / "vcdb-pilot-exclusions.json")["source_ids"])
+    ids.update(row["source_id"] for row in read_json(pilot_file or inputs / "vcdb-pilot.json")["cases"])
     ids.update(key for key, row in eligible.items() if row["suggested_partition"] == "pilot")
     urls = {source_key(url) for key in ids & eligible.keys() for url in eligible[key]["source_urls"]}
-    for file in OUTPUT.glob("*/results.json"):
+    for file in (output_directory or OUTPUT).glob("*/results.json"):
         run = read_json(file)["inputs"]
         if run["stage"] == "pilot":
             for key, entry in run.get("selection", {}).items():
@@ -108,7 +110,7 @@ def initialize(queue):
                       for row in verify_queue(queue)]}
 
 
-def make_packet(queue, preparation, eligible):
+def make_packet(queue, preparation, eligible, *, history=None):
     queued = {row["source_id"] for row in verify_queue(queue)}
     rows = [Preparation.model_validate(row) for row in preparation["cases"]]
     if len(rows) != len(queued) or {row.source_id for row in rows} != queued:
@@ -119,7 +121,7 @@ def make_packet(queue, preparation, eligible):
     exclusions = {}
     included = {}
     groups = set()
-    blocked, sources = exposed(eligible)
+    blocked, sources = exposed(eligible) if history is None else (set(history[0]), set(history[1]))
     for row in rows:
         key = row.source_id
         if row.disposition == "exclude":

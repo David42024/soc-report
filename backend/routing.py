@@ -55,3 +55,9 @@ def policy_record(execute, report_id=None):
 def routing_policy(db, report_id=None):
     with db.session() as execute:
         return policy_record(execute, report_id)
+
+
+def assignment_for(report: dict, configuration: dict) -> dict:
+    """Describe the existing deterministic assignment used to validate n8n."""
+    team = configuration["equipo_revision"] if report["motivo_revision"] else configuration["equipos"][report["tipo"]]
+    return {"responsable": team, **configuration["sla"][report["severidad"]]}

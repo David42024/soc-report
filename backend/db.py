@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from inspect import getsource
+import json
 from uuid import uuid4
 
 from sqlalchemy import create_engine, event, text
@@ -238,9 +239,15 @@ class Database:
                 detail = f"{result.tipo} / {result.severidad}"
                 if reason:
                     detail += f" / {reason}"
+                if result.privacy:
+                    detail += " / privacidad=" + json.dumps(result.privacy, ensure_ascii=True, sort_keys=True)
                 if result.provider:
                     detail += f" / proveedor={result.provider}"
                 self.event(execute, report_id, "clasificado", origin, detail)
+                if getattr(result, "explanation_input", None):
+                    snapshot_json = json.dumps(result.explanation_input, ensure_ascii=False, sort_keys=True, allow_nan=False)
+                    execute("INSERT INTO report_ai_inputs (report_id,payload,sha256,created_at) VALUES (%s,%s,%s,%s)",
+                            (report_id, snapshot_json, sha256(snapshot_json.encode("utf-8")).hexdigest(), utc_now()))
             return row is not None
 
     def assign(self, report, rule, actor):
@@ -337,7 +344,7 @@ class Database:
                 "reports", "assignments", "users", "bitacora", "triage_baselines", "triage_measurements",
                 "demo_impact_history", "routing_versions", "report_reviews", "assets",
                 "team_directory", "report_comments", "report_attachments", "notification_reads",
-                "impact_studies", "impact_observations", "report_requesters",
+                "impact_studies", "impact_observations", "report_requesters", "report_ai_inputs",
             ):
                 execute(f"DROP TRIGGER IF EXISTS soc_change ON {table}")
                 execute(f"CREATE TRIGGER soc_change AFTER INSERT OR UPDATE OR DELETE ON {table} FOR EACH ROW EXECUTE FUNCTION soc_audit_change()")

@@ -84,6 +84,7 @@ const messages: Record<string, [string, string]> = {
   posible_inyeccion: ["el reporte podría contener instrucciones dirigidas al clasificador", "the report may contain instructions aimed at the classifier"],
   langflow_no_disponible: ["el clasificador no estaba disponible", "the classifier was unavailable"],
   respuesta_langflow_invalida: ["el clasificador devolvió una salida inválida", "the classifier returned an invalid result"],
+  privacidad_no_disponible: ["se bloqueó el envío porque la protección de privacidad no está disponible", "sending was blocked because privacy protection is unavailable"],
   manualReview: ["se requiere validación manual", "manual validation required"],
   firstResponse: ["Primera respuesta", "First response"],
   resolution: ["Resolución", "Resolution"],

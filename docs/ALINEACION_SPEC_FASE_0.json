@@ -1,0 +1,562 @@
+{
+  "source_spec": "ARCHIVO_SPEC_SOC_Caso06_Concordante_Groq_Gemini.docx",
+  "source_version": "2.1",
+  "source_sha256": "a5868e2b7070d45f5b74cf50a8aea8d0d9a5657c45e3a85be52b3726e0f8fbfb",
+  "reviewed_at_lima": "2026-11-10T16:52:14.550890-05:00",
+  "scope": "Fase 0",
+  "phase0_acceptance_met": true,
+  "overall_system_fully_conformant": false,
+  "requirements_count": 76,
+  "status_counts": {
+    "Cumple": 50,
+    "No aplica": 12,
+    "Parcial": 14,
+    "No cumple": 0
+  },
+  "requirements": [
+    {
+      "spec_reference": "AR-01 §§1–3",
+      "requirement": "Identidad Caso 06, SOC, clasificación y gestión",
+      "component": "React, FastAPI, LangFlow y n8n",
+      "status": "Cumple",
+      "evidence_and_pending": "`README.md`, `backend/main.py`, `integrations/n8n/assign_report.json`; E2E aislado"
+    },
+    {
+      "spec_reference": "AR-02 §§3.1–3.3",
+      "requirement": "React operacional y Streamlit complementario",
+      "component": "`frontend/`, `app.py`, `pages/`",
+      "status": "Cumple",
+      "evidence_and_pending": "Tres páginas académicas; compilación React y smoke tests; no se reemplaza el formulario"
+    },
+    {
+      "spec_reference": "AR-03 §§3.1–3.2",
+      "requirement": "FastAPI único backend operacional",
+      "component": "`backend/main.py`, `src/inference/services.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "JWT, consultas y auditoría por API; ninguna conexión SQL nueva desde Streamlit"
+    },
+    {
+      "spec_reference": "AR-04 §§3.1–3.4",
+      "requirement": "LangFlow como clasificador puro",
+      "component": "`SocCloudModel`, export sincronizado",
+      "status": "Cumple",
+      "evidence_and_pending": "Solo ChatInput, Prompt, SocCloudModel y ChatOutput; pruebas de grafo y ejecución"
+    },
+    {
+      "spec_reference": "AR-05 §§3.1,10",
+      "requirement": "Groq principal y modelo configurado",
+      "component": "`cloud_classifier_model.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Prueba real: Groq / `openai/gpt-oss-20b`"
+    },
+    {
+      "spec_reference": "AR-06 §§3.1,7.3",
+      "requirement": "Gemini ante fallo técnico elegible",
+      "component": "Mismo componente y clientes existentes",
+      "status": "Cumple",
+      "evidence_and_pending": "Gemini / `gemini-3-flash-preview` ante modelo Groq inexistente por petición; sin cambio persistido"
+    },
+    {
+      "spec_reference": "AR-07 §§3.4,9 F0,13",
+      "requirement": "Export equivalente y secretos enlazados",
+      "component": "`src/utils/langflow.py`, `scripts/align_langflow.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Referencias existentes válidas y huella de export igual al runtime; sin Ollama/Qwen"
+    },
+    {
+      "spec_reference": "AR-08 §§3.1–3.2",
+      "requirement": "PostgreSQL y Redis existentes",
+      "component": "SQLAlchemy/psycopg y `RuntimeServices`",
+      "status": "Cumple",
+      "evidence_and_pending": "Salud real, lectura operativa y base PostgreSQL aislada en E2E"
+    },
+    {
+      "spec_reference": "AR-09 §§3.4,13",
+      "requirement": "Servicios antes inaccesibles",
+      "component": "Estado histórico del documento",
+      "status": "No aplica",
+      "evidence_and_pending": "No es un objetivo de indisponibilidad; se verifica el estado actual por separado"
+    },
+    {
+      "spec_reference": "RF-01 §5.1",
+      "requirement": "Formulario con reportante, canal, asunto, descripción, fecha y adjuntos",
+      "component": "Formulario React y `ReportInput`",
+      "status": "Parcial",
+      "evidence_and_pending": "Actualmente el envío exige `titulo`/`descripcion`; identidad se relaciona con cuenta y adjuntos existen aparte. Faltan campos completos del RF; evolución operacional fuera de F0"
+    },
+    {
+      "spec_reference": "RF-02 §§5.1,7",
+      "requirement": "Recepción, ID y persistencia después de clasificar",
+      "component": "`submit`, `save_report`, `dispatch`",
+      "status": "Cumple",
+      "evidence_and_pending": "E2E real aislado e idempotencia; clasificación precede a persistencia funcional y despacho n8n"
+    },
+    {
+      "spec_reference": "RF-03 §§5.1,7.2",
+      "requirement": "Tipo, severidad, activo, confianza y ampliación de justificación",
+      "component": "`Classification`, `SocCloudModel`",
+      "status": "Parcial",
+      "evidence_and_pending": "Contrato actual de cuatro campos válido; justificación estructurada pendiente de F4/F6, sin romper consumidores"
+    },
+    {
+      "spec_reference": "RF-04 §§5.1,8",
+      "requirement": "n8n asigna responsable y SLA; API valida",
+      "component": "Workflow, `route_for`, endpoint interno de asignación",
+      "status": "Cumple",
+      "evidence_and_pending": "Dos pruebas de workflow y E2E validan equipo y ambos vencimientos"
+    },
+    {
+      "spec_reference": "RF-05 §§5.1,7.3",
+      "requirement": "Revisión bajo umbral, inválidos y corrección separada",
+      "component": "`classify`, `report_reviews`, `operations.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Frontera 0,75, errores y conservación de predicción cubiertos por regresiones"
+    },
+    {
+      "spec_reference": "RF-06 §5.1",
+      "requirement": "Notificación por n8n y reintentos",
+      "component": "Workflow, `dispatch`, cola Redis",
+      "status": "Cumple",
+      "evidence_and_pending": "E2E registra una notificación interna con actor n8n; pruebas de recuperación simulada preservadas; no se certifica email externo"
+    },
+    {
+      "spec_reference": "RF-07 §5.1",
+      "requirement": "Indicadores operativos y ampliación académica",
+      "component": "Dashboard React, insights, Streamlit F0",
+      "status": "Parcial",
+      "evidence_and_pending": "Operación disponible; comparativas y evaluación académica pertenecen a F2/F3"
+    },
+    {
+      "spec_reference": "RF-08 §§4,5.1",
+      "requirement": "Eventos y bitácora inmutable",
+      "component": "Middleware, triggers, auditoría analítica nueva",
+      "status": "Cumple",
+      "evidence_and_pending": "Autoría por JWT, auditoría funcional y bloqueos PostgreSQL comprobados en base aislada"
+    },
+    {
+      "spec_reference": "RF-09 §§4,5.1",
+      "requirement": "JWT/RBAC/TOTP también para Streamlit",
+      "component": "Seguridad existente y adaptadores",
+      "status": "Cumple",
+      "evidence_and_pending": "Login/TOTP delegados; pruebas por cinco roles; consultas y escrituras locales auditadas por backend"
+    },
+    {
+      "spec_reference": "RF-10 §5.1",
+      "requirement": "Reusar PDF/Word/Excel y PNG científico",
+      "component": "`backend/exports.py`, `src/reports/figures.py`",
+      "status": "Parcial",
+      "evidence_and_pending": "Exportadores operativos preservados y PNG de 600 DPI probado; informes científicos integrados corresponden a F5"
+    },
+    {
+      "spec_reference": "RF-11 §§5.1,9",
+      "requirement": "Módulo académico por fases 0–7",
+      "component": "Estructura src/pages y F0",
+      "status": "Parcial",
+      "evidence_and_pending": "Preparación implementada; F1–F7 esperan orden explícita"
+    },
+    {
+      "spec_reference": "RF-12 §§5.1,6.5",
+      "requirement": "Originales, procedencia y reproducibilidad de datasets",
+      "component": "Catálogo, hashes y herramientas VCDB existentes",
+      "status": "Parcial",
+      "evidence_and_pending": "Acceso e integridad cubiertos; revisión humana y particiones definitivas pertenecen a F1/F2"
+    },
+    {
+      "spec_reference": "RF-13 §§5.1,7.3,13",
+      "requirement": "Proveedor/modelo y causa técnica separados del origen protector",
+      "component": "Metadata `soc_provider`, bitácora y evidencias de prueba",
+      "status": "Parcial",
+      "evidence_and_pending": "Proveedor se conserva; modelo y causa de fallback no se persisten íntegramente por cada reporte productivo. Instrumentación F2/F6 pendiente"
+    },
+    {
+      "spec_reference": "NF-01 §5.2",
+      "requirement": "Texto no confiable, delimitación y validación",
+      "component": "`SUSPICIOUS`, escape, Pydantic y taxonomía",
+      "status": "Cumple",
+      "evidence_and_pending": "Regresiones de inyección, JSON inválido y salida fuera de contrato; la cobertura no equivale a seguridad absoluta ante toda entrada"
+    },
+    {
+      "spec_reference": "NF-02 §§5.2,12",
+      "requirement": "Minimización/enmascaramiento automático de PII antes de cloud",
+      "component": "`src/utils/privacy.py`, `config/privacy.yaml`, clasificador, `SocCloudModel` y chat",
+      "status": "Cumple",
+      "evidence_and_pending": "Filtro local en ambos límites; copia protegida para Groq/Gemini/reintentos; fallo cerrado; originales restringidos y evidencia mínima. `tests/test_privacy.py`, `runs/privacy-fix-20261110/full-tests-final.xml` y E2E real aislado prueban el alcance descrito en `docs/SEGURIDAD_PRIVACIDAD.md`. No se certifica detección universal de PII ni cifrado/retención"
+    },
+    {
+      "spec_reference": "NF-03 §§3.4,5.2",
+      "requirement": "Claves fuera de código/export/logs",
+      "component": "`.env`, variables Credential y referencias",
+      "status": "Cumple",
+      "evidence_and_pending": "Export con nombres globales, mensajes saneados y escaneo de valores reales; no se crearon claves"
+    },
+    {
+      "spec_reference": "NF-04 §§5.2,11",
+      "requirement": "Medir p50/p95 y no afirmar p95 menor a 10 s sin evidencia",
+      "component": "Marcas de tiempo y comprobaciones individuales",
+      "status": "Parcial",
+      "evidence_and_pending": "Solo observaciones de integración; percentiles representativos y objetivo de rendimiento pendientes de campaña de F2/F3"
+    },
+    {
+      "spec_reference": "NF-05 §§5.2,7.3",
+      "requirement": "Política técnica de fallback y salida protectora",
+      "component": "Componente cloud y `backend/classifier.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Prueba real de conmutación, simulaciones de errores y rechazo de política sin conmutación; baja confianza deriva a revisión"
+    },
+    {
+      "spec_reference": "NF-06 §§5.2,12",
+      "requirement": "Coherencia de prompt, modelos, workflow y reglas",
+      "component": "Export, comprobador y hashes",
+      "status": "Cumple",
+      "evidence_and_pending": "Mismo código y prompt; grafo equivalente y prueba repetible; fuentes operativas protegidas por hashes"
+    },
+    {
+      "spec_reference": "NF-07 §§5.2,10",
+      "requirement": "Reproducibilidad numérica y registro",
+      "component": "Config, lock, semillas y runs",
+      "status": "Cumple",
+      "evidence_and_pending": "Registros técnicos con huellas, versiones y fecha; no se atribuye determinismo a las APIs"
+    },
+    {
+      "spec_reference": "NF-08 §5.2",
+      "requirement": "Prompt/modelo/proveedor/particiones por experimento",
+      "component": "Registro F0 y evidencias cloud",
+      "status": "Parcial",
+      "evidence_and_pending": "F0 registra sus fuentes y comprobaciones; manifiestos completos de experimentación y Prueba sellada pendientes de F1/F2"
+    },
+    {
+      "spec_reference": "NF-09 §5.2",
+      "requirement": "Español e identificadores operativos",
+      "component": "Streamlit en español y taxonomía original",
+      "status": "Cumple",
+      "evidence_and_pending": "Identificadores de diez clases preservados; React conserva su soporte existente"
+    },
+    {
+      "spec_reference": "SG-01 §4",
+      "requirement": "Administrador y Analista realizan operaciones",
+      "component": "Permisos `manage`, `write`, `review`",
+      "status": "Cumple",
+      "evidence_and_pending": "Cinco roles probados en auditoría; creación de verificaciones limitada a los dos roles"
+    },
+    {
+      "spec_reference": "SG-02 §4",
+      "requirement": "Gestor de lectura; Auditor de bitácora",
+      "component": "`read` para informes y `audit` para bitácora",
+      "status": "Cumple",
+      "evidence_and_pending": "Gestor no registra verificaciones; Auditor/Solicitante no acceden al catálogo analítico"
+    },
+    {
+      "spec_reference": "SG-03 §§4,5.1",
+      "requirement": "Operaciones Streamlit auditadas en backend",
+      "component": "`backend/analytics_audit.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Catálogo, fuente, alta y lectura de verificaciones; actor no aceptado desde el payload"
+    },
+    {
+      "spec_reference": "SG-04 §§4,6.3",
+      "requirement": "audit_log sin UPDATE/DELETE/TRUNCATE",
+      "component": "Triggers PostgreSQL existentes",
+      "status": "Cumple",
+      "evidence_and_pending": "Tres operaciones rechazadas por el trigger en PostgreSQL real aislado"
+    },
+    {
+      "spec_reference": "MD-01 §6",
+      "requirement": "Mapear entidades lógicas sin forzar nombres físicos",
+      "component": "`db/schema.sql`, `Database`, tablas existentes",
+      "status": "Cumple",
+      "evidence_and_pending": "`reports`, `assignments`, `audit_log`, `report_reviews`; no se hicieron migraciones para imitar el esquema orientativo"
+    },
+    {
+      "spec_reference": "MD-02 §§6.1–6.2,8",
+      "requirement": "Referencia temporal de recepción y minutos transcurridos",
+      "component": "`deadline`, asignaciones y reglas",
+      "status": "Cumple",
+      "evidence_and_pending": "Regresión de cuatro severidades y ambos SLA en E2E; no se usan días hábiles"
+    },
+    {
+      "spec_reference": "DS-01 §6.5",
+      "requirement": "VCDB original y revisión/hash",
+      "component": "ZIP existente y `scripts/vcdb.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "10.047 JSON; huella original verificada; candidatos provisionales no son gold labels"
+    },
+    {
+      "spec_reference": "DS-02 §6.5",
+      "requirement": "Piloto de ocho casos y cuatro tipos",
+      "component": "`vcdb-pilot.json`",
+      "status": "Cumple",
+      "evidence_and_pending": "Procedencia y revisor preservados; ausencia de severidad/activo declarada"
+    },
+    {
+      "spec_reference": "DS-03 §§6.5,13",
+      "requirement": "Holdout de 160 candidatos sin prueba final",
+      "component": "Cola y preparación existentes",
+      "status": "Cumple",
+      "evidence_and_pending": "Se conserva la condición de pendiente; no se crea `holdout-reviewed.json` ni se usa para ajuste"
+    },
+    {
+      "spec_reference": "DS-04 §6.5",
+      "requirement": "EuRepoC accesible sin reemplazo",
+      "component": "CSV original y lector estricto",
+      "status": "Parcial",
+      "evidence_and_pending": "Fuente funcional; el conteo real 3.414 × 85 difiere del estado reportado 3.663 × 85 en el SPEC"
+    },
+    {
+      "spec_reference": "DS-05 §6.5",
+      "requirement": "Operación real separada de DEMO",
+      "component": "API de reportes y catálogo explícito",
+      "status": "Cumple",
+      "evidence_and_pending": "Acceso limitado documentado; predicciones y DEMO no se presentan como referencia humana"
+    },
+    {
+      "spec_reference": "DS-06 §6.5",
+      "requirement": "Simulación marcada como sintética",
+      "component": "CSV del artículo preexistente",
+      "status": "Cumple",
+      "evidence_and_pending": "2.400 filas, identificación explícita; no se sustituye corpus por simulación"
+    },
+    {
+      "spec_reference": "DS-07 §§6.5,10",
+      "requirement": "Conservar originales y fuentes existentes",
+      "component": "Lectura y huellas antes/después",
+      "status": "Cumple",
+      "evidence_and_pending": "Ningún dataset alternativo descargado; integridad contrastada contra baseline"
+    },
+    {
+      "spec_reference": "DS-08 §§6.5,9,13",
+      "requirement": "Gold labels suficientes para evaluar",
+      "component": "Piloto y preparación parcial",
+      "status": "Parcial",
+      "evidence_and_pending": "Faltan revisión independiente, severidad/activo y Prueba final; preparación F1 pendiente"
+    },
+    {
+      "spec_reference": "F-00 §9",
+      "requirement": "Preparación, validación de servicios, export y credenciales",
+      "component": "F0 y correcciones de alineación",
+      "status": "Cumple",
+      "evidence_and_pending": "Unitarias, smoke, cloud autorizado y E2E aislado"
+    },
+    {
+      "spec_reference": "F-01 §9",
+      "requirement": "Datos, revisión, sesgos y estadística textual",
+      "component": "Catálogo preparatorio; herramientas previas VCDB",
+      "status": "No aplica",
+      "evidence_and_pending": "Implementación de F1 pendiente; no se añadió editor ni análisis exploratorio"
+    },
+    {
+      "spec_reference": "F-02 §9",
+      "requirement": "Experimentación de prompts/parámetros y Prueba sellada",
+      "component": "Infraestructura de registros",
+      "status": "No aplica",
+      "evidence_and_pending": "No se entrenan pesos de APIs; experimentación y línea base local condicionada a justificación"
+    },
+    {
+      "spec_reference": "F-03 §9",
+      "requirement": "Evaluación con etiquetas humanas y scores adecuados",
+      "component": "Reservado",
+      "status": "No aplica",
+      "evidence_and_pending": "Macro-F1, recall crítico, kappa y curvas solo con datos/score válidos"
+    },
+    {
+      "spec_reference": "F-04 §9",
+      "requirement": "Explicación textual y fragmentos verificables",
+      "component": "Reservado",
+      "status": "No aplica",
+      "evidence_and_pending": "Justificación estructurada y citas pendientes; SHAP/LIME no son obligación para APIs cloud"
+    },
+    {
+      "spec_reference": "F-05 §9",
+      "requirement": "Reportes científicos interpretados",
+      "component": "Exportadores previos y utilidad PNG",
+      "status": "No aplica",
+      "evidence_and_pending": "Integración de informes académicos en F5"
+    },
+    {
+      "spec_reference": "F-06 §9",
+      "requirement": "Inferencia por pipeline existente y trazabilidad",
+      "component": "Pipeline operacional conservado",
+      "status": "No aplica",
+      "evidence_and_pending": "Interfaz de inferencia académica y ampliaciones de contrato pendientes"
+    },
+    {
+      "spec_reference": "F-07 §9",
+      "requirement": "Optuna, límites de costo/tasa y no despliegue automático",
+      "component": "Dependencia preparada, sin estudios ejecutados",
+      "status": "No aplica",
+      "evidence_and_pending": "UI/búsquedas futuras; no se crearon trials"
+    },
+    {
+      "spec_reference": "R1",
+      "requirement": "Lógica modular, páginas y tipos",
+      "component": "`src/`, `pages/`, extensión mínima de backend",
+      "status": "Cumple",
+      "evidence_and_pending": "Lógica analítica separada; backend no se replica"
+    },
+    {
+      "spec_reference": "R2",
+      "requirement": "Configuración externa y credenciales",
+      "component": "YAML/TOML, `.env` y referencias globales",
+      "status": "Cumple",
+      "evidence_and_pending": "Nuevos endpoints/rutas y referencias de conformance externos"
+    },
+    {
+      "spec_reference": "R3",
+      "requirement": "Semilla, versiones y registros",
+      "component": "Lock, semillas y runs",
+      "status": "Cumple",
+      "evidence_and_pending": "Fechas, hashes y versiones; variabilidad cloud declarada"
+    },
+    {
+      "spec_reference": "R4",
+      "requirement": "Grupos y preprocesamiento sin fuga",
+      "component": "Lectura sin ajuste ni partición",
+      "status": "Cumple",
+      "evidence_and_pending": "En F0 no se ajustan modelos ni se consume el holdout; partición efectiva futura"
+    },
+    {
+      "spec_reference": "R5",
+      "requirement": "Títulos, unidades, lectura, hallazgo y límites",
+      "component": "`presentation.py` y páginas",
+      "status": "Cumple",
+      "evidence_and_pending": "Guías calculadas de resultados reales; confianza no calibrada advertida"
+    },
+    {
+      "spec_reference": "R6",
+      "requirement": "Estilo accesible y 600 DPI",
+      "component": "Tema y `figures.py`",
+      "status": "Cumple",
+      "evidence_and_pending": "Test PNG comprueba 600 DPI"
+    },
+    {
+      "spec_reference": "R7",
+      "requirement": "Validación, errores, caché, sesión y tareas",
+      "component": "Config/servicios/runtime",
+      "status": "Cumple",
+      "evidence_and_pending": "Sin tokens en caché; auditoría falla de forma segura; trabajos de red en segundo plano"
+    },
+    {
+      "spec_reference": "R8",
+      "requirement": "Conservar suites y añadir pytest/smoke",
+      "component": "Tests existentes y `tests/analytics/`",
+      "status": "Cumple",
+      "evidence_and_pending": "Batería completa y pruebas optativas reales separadas"
+    },
+    {
+      "spec_reference": "R9",
+      "requirement": "Supuestos, árbol, implementación y evidencias",
+      "component": "Mensajes de trabajo y este informe",
+      "status": "Cumple",
+      "evidence_and_pending": "Matriz, archivos, comandos y criterios documentados"
+    },
+    {
+      "spec_reference": "R10",
+      "requirement": "Solo fase solicitada",
+      "component": "Preparación y validación",
+      "status": "Cumple",
+      "evidence_and_pending": "No se implementan funcionalidades de F1–F7"
+    },
+    {
+      "spec_reference": "EX-01 §2.3",
+      "requirement": "SOAR, análisis profundo de correo y tickets externos",
+      "component": "Excluidos",
+      "status": "No aplica",
+      "evidence_and_pending": "No son correcciones de F0 ni se construyeron"
+    },
+    {
+      "spec_reference": "EX-02 §§9,10",
+      "requirement": "No imponer visión artificial",
+      "component": "Dependencias textuales/científicas",
+      "status": "Cumple",
+      "evidence_and_pending": "Sin Grad-CAM, ResNet, torchvision u Ollama nuevos"
+    },
+    {
+      "spec_reference": "EX-03 §§3.4,13",
+      "requirement": "Declaraciones históricas de Streamlit pendiente",
+      "component": "Estado reportado previo",
+      "status": "No aplica",
+      "evidence_and_pending": "Se conserva el SPEC; la implementación actual se verifica aquí"
+    },
+    {
+      "spec_reference": "CA-01 §11",
+      "requirement": "Flujo completo o revisión segura y auditoría",
+      "component": "Pipeline original e integración aislada",
+      "status": "Cumple",
+      "evidence_and_pending": "Un caso real autorizado completó clasificación, persistencia, asignación, notificación y bitácora; ramas de error cubiertas por regresión"
+    },
+    {
+      "spec_reference": "CA-02 §11",
+      "requirement": "Diez tipos y contrato compatible con ampliación",
+      "component": "`Classification`, prompt y esquema cloud",
+      "status": "Parcial",
+      "evidence_and_pending": "Diez clases y cuatro campos comprobados; quinto campo pendiente de F4/F6"
+    },
+    {
+      "spec_reference": "CA-03 §11",
+      "requirement": "Meta macro-F1 de tipo mayor o igual a 0,85",
+      "component": "Evaluación final pendiente",
+      "status": "No aplica",
+      "evidence_and_pending": "Meta, no resultado de F0; no hay holdout revisado suficiente"
+    },
+    {
+      "spec_reference": "CA-04 §11",
+      "requirement": "Meta kappa ordinal mayor o igual a 0,70",
+      "component": "Etiquetas de severidad pendientes",
+      "status": "No aplica",
+      "evidence_and_pending": "No evaluable válidamente con el piloto actual; no se fabrican etiquetas"
+    },
+    {
+      "spec_reference": "CA-05 §11",
+      "requirement": "Umbral 0,75 y correcciones separadas",
+      "component": "Clasificador y `report_reviews`",
+      "status": "Cumple",
+      "evidence_and_pending": "Regresión del límite y conservación de predicciones originales"
+    },
+    {
+      "spec_reference": "CA-06 §11",
+      "requirement": "Fallback técnico y proveedor real auditable",
+      "component": "Componente original, metadata y bitácora",
+      "status": "Cumple",
+      "evidence_and_pending": "Probes reales separados de pruebas simuladas de baja confianza/rechazo de política"
+    },
+    {
+      "spec_reference": "CA-07 §11",
+      "requirement": "Rechazo de mutaciones de audit_log",
+      "component": "Triggers PostgreSQL",
+      "status": "Cumple",
+      "evidence_and_pending": "Tres rechazos en base real aislada; sin operaciones destructivas sobre producción"
+    },
+    {
+      "spec_reference": "CA-08 §11",
+      "requirement": "Plazos 15/240, 60/480, 240/1.440, 480/2.880",
+      "component": "Reglas y vencimientos existentes",
+      "status": "Cumple",
+      "evidence_and_pending": "Workflow recorre las cuatro severidades y E2E contrasta ambos vencimientos desde recepción"
+    },
+    {
+      "spec_reference": "CA-09 §11",
+      "requirement": "Privacidad, inyección, rol y secretos",
+      "component": "Controles existentes, filtro local y auditoría",
+      "status": "Parcial",
+      "evidence_and_pending": "Roles, secretos, inyección y protección de los formatos de NF-02 probados; cobertura de PII real arbitraria, cifrado y retención no se certifican. No se elevan controles no probados a Cumple"
+    },
+    {
+      "spec_reference": "CA-10 §11",
+      "requirement": "Cada fase demuestra función y pruebas",
+      "component": "F0 completada; módulos posteriores reservados",
+      "status": "Parcial",
+      "evidence_and_pending": "F0 cumple; el conjunto de fases 0–7 no se presenta como terminado"
+    }
+  ],
+  "privacy_fix": {
+    "scope": "NF-02, previo a Fase 1",
+    "report": "docs/SEGURIDAD_PRIVACIDAD.md",
+    "evidence_directory": "runs/privacy-fix-20261110",
+    "phase1_started": false,
+    "phase0_acceptance_met_is_historical": true,
+    "production_runtime": "Verificado: cinco servicios SOC ok, JWT y Streamlit; ver evidencia y limitación de restauración de otro proyecto.",
+    "security_acceptance_met": true,
+    "production_evidence": "runs/privacy-fix-20261110/production-runtime.json",
+    "passed_tests": 170,
+    "passed_subtests": 102
+  }
+}

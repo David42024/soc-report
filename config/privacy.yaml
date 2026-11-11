@@ -1,0 +1,88 @@
+version: soc-privacy-1
+max_text_characters: 60000
+max_matches: 2048
+# Solo se conserva la igualdad de los marcadores dentro de una solicitud.
+# No se generan hashes de personas ni se guarda un diccionario de reversión.
+technical_phrases:
+  - Active Directory
+  - Microsoft Windows
+  - Windows Server
+  - Microsoft Defender
+  - Microsoft Azure
+  - Google Chrome
+  - Google Workspace
+  - Google Cloud
+  - Amazon Web Services
+  - Apache JMeter
+  - SOC Report Router
+  - Acceso No Autorizado
+  - Fuga de Datos
+  - Denegación de Servicio
+  - Uso Indebido
+  - Incidente Físico
+  - Correo Falso
+  - Phishing
+  - Malware
+  - Ransomware
+  - Vulnerabilidad
+  - Fraude
+  - Reporte
+  - Servidor
+  - Server
+  - Activo
+  - Crítica
+  - Crítico
+  - Alta
+  - Media
+  - Baja
+rules:
+  - kind: SECRETO
+    pattern: '(?s)-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----.*?(?:-----END (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----|\Z)'
+  - kind: SECRETO
+    pattern: '(?im)\b(?:authorization|proxy-authorization|cookie|set-cookie)\s*:\s*(?P<value>[^\r\n]+)'
+  - kind: SECRETO
+    pattern: '(?i)\b(?:api[_ .-]?key|password|passwd|pwd|contrase[ñn]a|secret(?:[_-]?key)?|client[_-]?secret|access[_-]?token|refresh[_-]?token|token|clave|credencial(?:es)?|pin|otp|totp)\b["\x27]?\s*(?:[:=]|es\b)\s*(?P<value>"[^"\r\n]*"|\x27[^\x27\r\n]*\x27|[^\s,;<>]+)'
+  - kind: SECRETO
+    pattern: '\b(?:gsk_|sk-|AIza|gh[pousr]_|github_pat_|xox[baprs]-)[A-Za-z0-9_-]{10,}|\bAKIA[A-Z0-9]{16}\b|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'
+  - kind: CREDENCIAL_URL
+    pattern: '(?<=://)(?P<value>[^\s/@]+(?::[^\s/@]*)?)@'
+  - kind: PARAMETRO_URL
+    pattern: '[?&][^\s?&=#]+=(?P<value>[^\s&#<>]+)'
+  - kind: CONTENIDO_CODIFICADO
+    pattern: '(?i)data:[a-z0-9.+/-]+;base64,(?P<value>[a-z0-9+/=]+)'
+  - kind: EMAIL
+    pattern: '(?i)(?<![\w.+-])[\w.!#$%\x27*+~-]+@[\w-]+(?:\.[\w-]+)+'
+  - kind: DOCUMENTO
+    pattern: '(?i)\b(?:dni|nie|nif|ruc|rut|ssn|c[ée]dula|pasaporte|passport|documento(?:\s+de\s+identidad)?|n[uú]mero\s+de\s+identificaci[oó]n)\b\s*(?:n[°ºo.]?\s*)?[:=#-]?\s*(?P<value>[A-Z]{0,3}\d(?:[ .-]?\d){4,19}[A-Z]?)'
+  - kind: DOCUMENTO
+    pattern: '(?<![\w.-])\d{3}-\d{2}-\d{4}(?![\w.-])|(?<![\w.-])\d{8,12}(?![\w.-])'
+  - kind: CUENTA
+    pattern: '\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]){11,30}\b|(?<![\w.-])(?:\d[ -]?){12,18}\d(?![\w.-])'
+  - kind: TELEFONO
+    pattern: '(?i)\b(?:tel[ée]fono|tel[.]?|celular|m[oó]vil|phone|whatsapp|fax)\s*[:=]?\s*(?P<value>\+?\d[\d ()-]{5,23}\d)'
+  - kind: TELEFONO
+    pattern: '(?<![\w])\+\d[\d ()-]{6,21}\d|(?<![\w.])\(\d{2,4}\)[ -]?\d{3,4}[ -]?\d{3,4}(?!\w)|(?<![\w.-])\d{3}[ -]\d{3}[ -]\d{3}(?![\w.-])'
+  - kind: FECHA_PERSONAL
+    pattern: '(?i)\b(?:fecha\s+de\s+nacimiento|nacido\s+el|nacimiento|dob|date\s+of\s+birth)\s*[:=]?\s*(?P<value>\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4})'
+  - kind: DATO_SENSIBLE
+    pattern: '(?i)\b(?:diagn[oó]stico|historia\s+cl[ií]nica|condici[oó]n\s+m[ée]dica|medical\s+diagnosis|orientaci[oó]n\s+sexual|afiliaci[oó]n\s+pol[ií]tica|religi[oó]n)\s*[:=]\s*(?P<value>[^\r\n;]{1,240})'
+  - kind: DIRECCION
+    pattern: '(?i)\b(?:domicilio|direcci[oó]n\s+(?:postal|personal|particular)|postal\s+address|home\s+address|calle|avenida|av[.]|jir[oó]n|jr[.]|pasaje)\s*[:=]?\s*(?P<value>[^\r\n;,]{3,180})'
+  - kind: PERSONA
+    pattern: '(?i)(?:\b(?:nombre(?:\s+completo)?|nombres\s+y\s+apellidos|apellidos|full\s+name|name)\s*[:=]\s*|\b(?:me\s+llamo|mi\s+nombre\s+es|nombre\s+es)\s+)(?P<value>[^\r\n;,<>]{2,100})'
+  - kind: PERSONA
+    pattern: '\b(?:Sr[.]?|Sra[.]?|Dr[.]?|Dra[.]?|señor|señora|emplead[oa]|paciente)\s+(?P<value>[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?:\s+(?:(?:de|del|la|las|los|y)\s+)?[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+){0,4})'
+  - kind: PERSONA
+    pattern: '\b[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?:[ \t]+(?:(?:de|del|la|las|los|y)[ \t]+)?[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+){1,4}\b'
+  - kind: PERSONA
+    pattern: '\b(?P<value>[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+)\s+(?:recibi[oó]|respondi[oó]|inform[oó]|report[oó]|puls[oó]|abri[oó]|envi[oó]|clicked|reported|received)\b'
+  - kind: USUARIO
+    pattern: '(?i)\b(?:usuario|username|user\s*id|login|samaccountname|upn|cuenta(?:\s+de\s+usuario)?)\s*[:=]\s*(?P<value>[^\s;,<>]+)'
+  - kind: USUARIO
+    pattern: '(?i)(?:[a-z]:[\\/]users[\\/]|/(?:home|users)/)(?P<value>[^\\/\s]+)'
+  - kind: USUARIO
+    pattern: '(?<![\w])@[\w.-]{2,}|(?<![\w\\/])[A-Z][A-Z0-9.-]{1,31}\\(?P<value>[A-Za-z][A-Za-z0-9._-]+)'
+  - kind: IP
+    pattern: '(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])|(?<![\w:])(?:[0-9A-Fa-f]{0,4}:){2,}[0-9A-Fa-f:.]*(?!\w)'
+  - kind: MAC
+    pattern: '\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b'

@@ -1,95 +1,7 @@
 {
+  "name": "SOC Report Router | Groq + Gemini",
+  "is_component": false,
   "data": {
-    "edges": [
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
-            "dataType": "ChatInput",
-            "id": "ChatInput-b6UCc",
-            "name": "message",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "input_value",
-            "id": "LanguageModelComponent-FLeYF",
-            "inputTypes": [
-              "Message"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "reactflow__edge-ChatInput-b6UCc{œdataTypeœ:œChatInputœ,œidœ:œChatInput-b6UCcœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-LanguageModelComponent-FLeYF{œfieldNameœ:œinput_valueœ,œidœ:œLanguageModelComponent-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "ChatInput-b6UCc",
-        "sourceHandle": "{œdataTypeœ: œChatInputœ, œidœ: œChatInput-b6UCcœ, œnameœ: œmessageœ, œoutput_typesœ: [œMessageœ]}",
-        "target": "LanguageModelComponent-FLeYF",
-        "targetHandle": "{œfieldNameœ: œinput_valueœ, œidœ: œLanguageModelComponent-FLeYFœ, œinputTypesœ: [œMessageœ], œtypeœ: œstrœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
-            "dataType": "Prompt",
-            "id": "Prompt-t2oaK",
-            "name": "prompt",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "system_message",
-            "id": "LanguageModelComponent-FLeYF",
-            "inputTypes": [
-              "Message"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "reactflow__edge-Prompt-t2oaK{œdataTypeœ:œPromptœ,œidœ:œPrompt-t2oaKœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-LanguageModelComponent-FLeYF{œfieldNameœ:œsystem_messageœ,œidœ:œLanguageModelComponent-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "Prompt-t2oaK",
-        "sourceHandle": "{œdataTypeœ: œPromptœ, œidœ: œPrompt-t2oaKœ, œnameœ: œpromptœ, œoutput_typesœ: [œMessageœ]}",
-        "target": "LanguageModelComponent-FLeYF",
-        "targetHandle": "{œfieldNameœ: œsystem_messageœ, œidœ: œLanguageModelComponent-FLeYFœ, œinputTypesœ: [œMessageœ], œtypeœ: œstrœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
-            "dataType": "LanguageModelComponent",
-            "id": "LanguageModelComponent-FLeYF",
-            "name": "text_output",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "input_value",
-            "id": "ChatOutput-yK0AU",
-            "inputTypes": [
-              "Data",
-              "JSON",
-              "DataFrame",
-              "Table",
-              "Message"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "reactflow__edge-LanguageModelComponent-FLeYF{œdataTypeœ:œLanguageModelComponentœ,œidœ:œLanguageModelComponent-FLeYFœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-ChatOutput-yK0AU{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-yK0AUœ,œinputTypesœ:[œDataœ,œJSONœ,œDataFrameœ,œTableœ,œMessageœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "LanguageModelComponent-FLeYF",
-        "sourceHandle": "{œdataTypeœ: œLanguageModelComponentœ, œidœ: œLanguageModelComponent-FLeYFœ, œnameœ: œtext_outputœ, œoutput_typesœ: [œMessageœ]}",
-        "target": "ChatOutput-yK0AU",
-        "targetHandle": "{œfieldNameœ: œinput_valueœ, œidœ: œChatOutput-yK0AUœ, œinputTypesœ: [œDataœ, œJSONœ, œDataFrameœ, œTableœ, œMessageœ], œtypeœ: œstrœ}"
-      }
-    ],
     "nodes": [
       {
         "data": {
@@ -119,7 +31,7 @@
             "frozen": false,
             "icon": "MessagesSquare",
             "legacy": false,
-            "lf_version": "1.7.0",
+            "lf_version": "1.11.0",
             "metadata": {
               "code_hash": "45974e6b1909",
               "component_class_name": "ChatInput",
@@ -339,8 +251,8 @@
         "dragging": false,
         "id": "ChatInput-b6UCc",
         "measured": {
-          "height": 234,
-          "width": 320
+          "width": 320,
+          "height": 216
         },
         "position": {
           "x": 30,
@@ -379,7 +291,7 @@
             "frozen": false,
             "icon": "prompts",
             "legacy": false,
-            "lf_version": "1.7.0",
+            "lf_version": "1.11.0",
             "metadata": {
               "code_hash": "e3714ffe5d15",
               "component_class_name": "PromptComponent",
@@ -503,8 +415,8 @@
         "dragging": false,
         "id": "Prompt-t2oaK",
         "measured": {
-          "height": 260,
-          "width": 320
+          "width": 320,
+          "height": 265
         },
         "position": {
           "x": 30,
@@ -544,7 +456,7 @@
             "frozen": false,
             "icon": "MessagesSquare",
             "legacy": false,
-            "lf_version": "1.7.0",
+            "lf_version": "1.11.0",
             "metadata": {
               "code_hash": "0aab1c78e1dc",
               "component_class_name": "ChatOutput",
@@ -783,8 +695,8 @@
         "dragging": false,
         "id": "ChatOutput-yK0AU",
         "measured": {
-          "height": 234,
-          "width": 320
+          "width": 320,
+          "height": 216
         },
         "position": {
           "x": 820,
@@ -799,454 +711,238 @@
       },
       {
         "data": {
-          "id": "LanguageModelComponent-FLeYF",
+          "id": "SocCloudModel-FLeYF",
           "node": {
-            "base_classes": [
-              "LanguageModel",
-              "Message"
-            ],
-            "beta": false,
-            "conditional_paths": [],
-            "custom_fields": {},
-            "description": "Runs a language model given a specified provider.",
-            "display_name": "Language Model",
-            "documentation": "https://docs.langflow.org/components-models",
-            "edited": false,
-            "field_order": [
-              "model",
-              "model_name",
-              "provider",
-              "api_key",
-              "base_url_ibm_watsonx",
-              "project_id",
-              "ollama_base_url",
-              "input_value",
-              "system_message",
-              "stream",
-              "temperature",
-              "max_tokens"
-            ],
-            "frozen": false,
-            "icon": "brain-circuit",
-            "last_updated": "2026-02-12T21:08:04.082Z",
-            "legacy": false,
-            "lf_version": "1.7.0",
-            "metadata": {
-              "code_hash": "1bfa98a19c39",
-              "component_class_name": "LanguageModelComponent",
-              "dependencies": {
-                "dependencies": [
-                  {
-                    "name": "lfx",
-                    "version": null
-                  }
-                ],
-                "total_dependencies": 1
-              },
-              "keywords": [
-                "model",
-                "llm",
-                "language model",
-                "large language model"
-              ],
-              "model_provider_policy_mode": "delegate",
-              "module": "lfx.components.models_and_agents.language_model.LanguageModelComponent"
-            },
-            "minimized": false,
-            "output_types": [],
-            "outputs": [
-              {
-                "allows_loop": false,
-                "cache": true,
-                "display_name": "Model Response",
-                "group_outputs": false,
-                "hidden": null,
-                "loop_types": null,
-                "method": "text_response",
-                "name": "text_output",
-                "options": null,
-                "required_inputs": null,
-                "selected": "Message",
-                "tool_mode": true,
-                "types": [
-                  "Message"
-                ],
-                "value": "__UNDEFINED__"
-              },
-              {
-                "allows_loop": false,
-                "cache": true,
-                "display_name": "Language Model",
-                "group_outputs": false,
-                "hidden": null,
-                "loop_types": null,
-                "method": "build_model",
-                "name": "model_output",
-                "options": null,
-                "required_inputs": null,
-                "selected": "LanguageModel",
-                "tool_mode": true,
-                "types": [
-                  "LanguageModel"
-                ],
-                "value": "__UNDEFINED__"
-              }
-            ],
-            "pinned": false,
-            "priority": 0,
             "template": {
-              "_frontend_node_flow_id": {
-                "value": "c1cb7b3c-2589-4754-ac61-8cf88df4a07e"
-              },
-              "_frontend_node_folder_id": {
-                "value": "ce670bdf-fcca-4006-9f28-b58452b08ea2"
-              },
               "_type": "Component",
-              "api_key": {
-                "_input_type": "SecretStrInput",
-                "advanced": true,
-                "display_name": "API Key",
-                "dynamic": false,
-                "info": "Model Provider API key",
-                "input_types": [],
-                "load_from_db": false,
-                "name": "api_key",
-                "override_skip": false,
-                "password": true,
-                "placeholder": "",
-                "real_time_refresh": true,
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "track_in_telemetry": false,
-                "type": "str",
-                "value": ""
-              },
-              "base_url_ibm_watsonx": {
-                "_input_type": "DropdownInput",
-                "advanced": false,
-                "combobox": false,
-                "dialog_inputs": {},
-                "display_name": "watsonx API Endpoint",
-                "dynamic": false,
-                "external_options": {},
-                "info": "The base URL of the API (IBM watsonx.ai only)",
-                "name": "base_url_ibm_watsonx",
-                "options": [
-                  "https://us-south.ml.cloud.ibm.com",
-                  "https://eu-de.ml.cloud.ibm.com",
-                  "https://eu-gb.ml.cloud.ibm.com",
-                  "https://au-syd.ml.cloud.ibm.com",
-                  "https://jp-tok.ml.cloud.ibm.com",
-                  "https://ca-tor.ml.cloud.ibm.com"
-                ],
-                "options_metadata": [],
-                "override_skip": false,
-                "placeholder": "",
-                "real_time_refresh": true,
-                "required": false,
-                "show": false,
-                "title_case": false,
-                "toggle": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": true,
-                "type": "str",
-                "value": "https://us-south.ml.cloud.ibm.com"
-              },
               "code": {
+                "type": "code",
+                "required": true,
+                "placeholder": "",
+                "list": false,
+                "show": true,
+                "multiline": true,
+                "value": "from urllib.parse import quote\nfrom hashlib import sha256\nimport json\nimport re\nfrom time import monotonic\n\nimport httpx\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.io import MessageInput, Output, SecretStrInput, StrInput\nfrom lfx.schema.message import Message\nfrom lfx.utils.secrets import secret_value_to_str\n\nfrom src.utils.privacy import protect_messages\nfrom src.inference.telemetry import CloudTrace, ProviderAttempt\n\n\nclass ProviderPolicyError(ValueError):\n    \"\"\"An explicit safety refusal must terminate cross-provider failover.\"\"\"\n\n\nclass SocCloudModel(Component):\n    display_name = \"Groq con respaldo Gemini\"\n    description = \"Clasifica con Groq y usa Gemini si el proveedor falla.\"\n    icon = \"brain-circuit\"\n    name = \"SocCloudModel\"\n\n    inputs = [\n        MessageInput(name=\"input_value\", display_name=\"Reporte\", required=True),\n        MessageInput(name=\"system_message\", display_name=\"Instrucciones\", required=True),\n        SecretStrInput(name=\"groq_api_key\", display_name=\"Clave Groq\", required=True),\n        SecretStrInput(name=\"gemini_api_key\", display_name=\"Clave Gemini\", required=True),\n        StrInput(name=\"groq_model\", display_name=\"Modelo Groq\", value=\"openai/gpt-oss-20b\", advanced=True),\n        StrInput(name=\"gemini_model\", display_name=\"Modelo Gemini\", value=\"gemini-3-flash-preview\", advanced=True),\n    ]\n    outputs = [Output(name=\"text_output\", display_name=\"Clasificación\", method=\"classify\")]\n\n    async def classify(self) -> Message:\n        # One protected copy is shared by both providers and every retry. This\n        # also protects direct LangFlow runs that did not pass through FastAPI.\n        # Protection happens before entering the provider fallback block.\n        messages, privacy = protect_messages([\n            {\"role\": \"system\", \"content\": getattr(self.system_message, \"text\", self.system_message)},\n            {\"role\": \"user\", \"content\": getattr(self.input_value, \"text\", self.input_value)},\n        ], known_secrets=(secret_value_to_str(self.groq_api_key), secret_value_to_str(self.gemini_api_key)))\n        attempts = []\n        async with httpx.AsyncClient(timeout=25, trust_env=False) as client:\n            try:\n                result = await self._attempt(client, \"groq\", messages, attempts)\n            except ProviderPolicyError:\n                return self._protected_response(messages, privacy, attempts, \"rechazo_politica_proveedor\")\n            except (httpx.HTTPError, ValueError):\n                pass\n            else:\n                self.status = \"Groq\"\n                return self._response(result, \"groq\", self.groq_model, messages, privacy, attempts)\n\n            for attempt in range(2):\n                try:\n                    result = await self._attempt(client, \"gemini\", messages, attempts)\n                    break\n                except ProviderPolicyError:\n                    return self._protected_response(messages, privacy, attempts, \"rechazo_politica_proveedor\")\n                except httpx.HTTPStatusError as exc:\n                    status = exc.response.status_code\n                    if attempt or (status != 408 and status < 500):\n                        return self._protected_response(messages, privacy, attempts, \"proveedores_no_disponibles\")\n                except httpx.RequestError:\n                    if attempt:\n                        return self._protected_response(messages, privacy, attempts, \"proveedores_no_disponibles\")\n                except ValueError:\n                    return self._protected_response(messages, privacy, attempts, \"proveedores_no_disponibles\")\n        self.status = \"Gemini\"\n        return self._response(result, \"gemini\", self.gemini_model, messages, privacy, attempts)\n\n    async def _attempt(self, client: httpx.AsyncClient, provider: str, messages: list[dict],\n                       attempts: list[ProviderAttempt]) -> dict:\n        \"\"\"Time each actual HTTP attempt and retain only bounded, non-sensitive fields.\"\"\"\n        started = monotonic()\n        outcome, status, response_model = \"ok\", None, None\n        model = self.groq_model if provider == \"groq\" else self.gemini_model\n        try:\n            if provider == \"groq\":\n                reply = await self._complete(client, \"https://api.groq.com/openai/v1/chat/completions\",\n                    self.groq_api_key, model, messages, max_completion_tokens=1536)\n            else:\n                reply = await self._gemini(client, messages)\n            response_model = reply[\"response_model\"]\n            return reply\n        except ProviderPolicyError:\n            outcome = \"policy_rejected\"\n            raise\n        except httpx.HTTPStatusError as error:\n            status = error.response.status_code\n            try:\n                code = error.response.json()[\"error\"].get(\"code\")\n            except (ValueError, TypeError, KeyError, AttributeError):\n                code = None\n            if code in (\"content_policy_violation\", \"content_filter\", \"safety\"):\n                outcome = \"policy_rejected\"\n                raise ProviderPolicyError(\"El proveedor rechazó la solicitud por política.\") from None\n            outcome = \"http_error\"\n            raise\n        except httpx.RequestError:\n            outcome = \"transport_error\"\n            raise\n        except ValueError:\n            outcome = \"invalid_response\"\n            raise\n        finally:\n            attempts.append(ProviderAttempt(provider=provider, model=model, outcome=outcome,\n                                            seconds=max(0.0, monotonic() - started), http_status=status,\n                                            response_model=response_model))\n\n    def _response(self, reply: dict, provider: str | None, model: str | None, messages: list[dict],\n                  privacy: dict, attempts: list[ProviderAttempt], reason: str | None = None) -> Message:\n        \"\"\"Attach protected observable context outside the classification JSON.\"\"\"\n        user = messages[1][\"content\"]\n        trace = CloudTrace(outcome=\"protective\" if reason else \"classified\", attempts=attempts,\n                           technical_fallback=any(item.provider == \"gemini\" for item in attempts), review_reason=reason)\n        return Message(text=reply[\"text\"], session_metadata={\n            \"soc_provider\": provider, \"soc_model\": reply[\"response_model\"] or model, \"soc_privacy\": privacy,\n            \"soc_model_scope\": \"response\" if reply[\"response_model\"] else \"requested\",\n            \"soc_prompt_sha256\": sha256(messages[0][\"content\"].encode(\"utf-8\")).hexdigest(),\n            \"soc_input_sha256\": sha256(user.encode(\"utf-8\")).hexdigest(), \"soc_input_text\": user,\n            \"soc_trace\": trace.model_dump(),\n            \"soc_provider_seconds\": attempts[-1].seconds if provider else None,\n        })\n\n    def _protected_response(self, messages: list[dict], privacy: dict, attempts: list[ProviderAttempt], reason: str) -> Message:\n        \"\"\"Return the operational safe result with its observable technical trace.\"\"\"\n        self.status = \"Revisión humana\"\n        safe = {\"tipo\": \"otro\", \"severidad\": \"media\", \"activo_afectado\": None, \"confianza\": 0.0}\n        return self._response({\"text\": json.dumps(safe), \"response_model\": None}, None, None, messages, privacy, attempts, reason)\n\n    def _schema(self) -> dict:\n        properties = {\n            \"tipo\": {\"type\": \"string\"},\n            \"severidad\": {\"type\": \"string\"},\n            \"activo_afectado\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}]},\n            \"confianza\": {\"type\": \"number\"},\n        }\n        return {\n            \"type\": \"object\",\n            \"properties\": properties,\n            \"required\": list(properties),\n            \"additionalProperties\": False,\n        }\n\n    async def _complete(self, client, url, key, model, messages, **generation) -> dict:\n        response = await client.post(\n            url,\n            headers={\"Authorization\": f\"Bearer {secret_value_to_str(key)}\"},\n            json={\n                \"model\": model,\n                \"messages\": messages,\n                \"response_format\": {\n                    \"type\": \"json_schema\",\n                    \"json_schema\": {\n                        \"name\": \"soc_classification\",\n                        \"strict\": True,\n                        \"schema\": self._schema(),\n                    },\n                },\n                \"reasoning_effort\": \"low\",\n                **generation,\n            },\n        )\n        response.raise_for_status()\n        try:\n            payload = response.json()\n            choice = payload[\"choices\"][0]\n            message = choice[\"message\"]\n            if message.get(\"refusal\") or choice.get(\"finish_reason\") == \"content_filter\":\n                raise ProviderPolicyError(\"Groq rechazó la solicitud por política.\")\n            text = message[\"content\"]\n        except ProviderPolicyError:\n            raise\n        except (ValueError, KeyError, IndexError, TypeError, AttributeError):\n            raise ValueError(\"El proveedor devolvió una respuesta inválida.\") from None\n        if not isinstance(text, str) or not text.strip():\n            raise ValueError(\"El proveedor devolvió una respuesta vacía.\")\n        return {\"text\": text, \"response_model\": self._model_version(payload.get(\"model\"))}\n\n    async def _gemini(self, client, messages) -> dict:\n        model = quote(self.gemini_model, safe=\"\")\n        generation = {\n            \"responseMimeType\": \"application/json\",\n            \"responseJsonSchema\": self._schema(),\n            \"maxOutputTokens\": 1536,\n        }\n        if self.gemini_model == \"gemini-3-flash-preview\":\n            generation[\"thinkingConfig\"] = {\"thinkingLevel\": \"low\"}\n        response = await client.post(\n            f\"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent\",\n            headers={\"x-goog-api-key\": secret_value_to_str(self.gemini_api_key)},\n            json={\n                \"systemInstruction\": {\"parts\": [{\"text\": messages[0][\"content\"]}]},\n                \"contents\": [{\"role\": \"user\", \"parts\": [{\"text\": messages[1][\"content\"]}]}],\n                \"generationConfig\": generation,\n            },\n        )\n        response.raise_for_status()\n        try:\n            payload = response.json()\n            blocked = payload.get(\"promptFeedback\", {}).get(\"blockReason\")\n            if blocked and blocked != \"BLOCK_REASON_UNSPECIFIED\":\n                raise ProviderPolicyError(\"Gemini rechazó la solicitud por política.\")\n            candidate = payload[\"candidates\"][0]\n            if candidate.get(\"finishReason\") in (\"SAFETY\", \"RECITATION\", \"BLOCKLIST\", \"PROHIBITED_CONTENT\", \"SPII\"):\n                raise ProviderPolicyError(\"Gemini rechazó la solicitud por política.\")\n            parts = candidate[\"content\"][\"parts\"]\n            result = \"\".join(part.get(\"text\", \"\") for part in parts if not part.get(\"thought\"))\n        except ProviderPolicyError:\n            raise\n        except (ValueError, KeyError, IndexError, TypeError, AttributeError):\n            raise ValueError(\"Gemini devolvió una respuesta inválida.\") from None\n        if not result.strip():\n            raise ValueError(\"Gemini devolvió una respuesta vacía.\")\n        return {\"text\": result, \"response_model\": self._model_version(payload.get(\"modelVersion\"))}\n\n    @staticmethod\n    def _model_version(value: object) -> str | None:\n        \"\"\"Keep only a provider-reported version with a safe identifier format.\"\"\"\n        return value if isinstance(value, str) and re.fullmatch(r\"[a-zA-Z0-9._:/-]{1,160}\", value) else None",
+                "fileTypes": [],
+                "file_path": "",
+                "password": false,
+                "name": "code",
                 "advanced": true,
                 "api_editable": false,
                 "dynamic": true,
-                "fileTypes": [],
-                "file_path": "",
                 "info": "",
-                "list": false,
                 "load_from_db": false,
-                "multiline": true,
-                "name": "code",
-                "password": false,
-                "placeholder": "",
+                "title_case": false
+              },
+              "gemini_api_key": {
+                "load_from_db": true,
+                "override_skip": false,
                 "required": true,
+                "placeholder": "",
                 "show": true,
+                "name": "gemini_api_key",
+                "value": "GEMINI_API_KEY",
+                "display_name": "Clave Gemini",
+                "advanced": false,
+                "api_editable": false,
+                "input_types": [],
+                "dynamic": false,
+                "info": "",
                 "title_case": false,
-                "type": "code",
-                "value": "from lfx.base.models.model import LCModelComponent\nfrom lfx.base.models.unified_models import (\n    get_language_model_options,\n    get_llm,\n    handle_model_input_update,\n)\nfrom lfx.base.models.watsonx_constants import IBM_WATSONX_URLS\nfrom lfx.components.models_and_agents.model_selection import apply_model_overrides\nfrom lfx.field_typing.constants import LanguageModel\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.inputs.inputs import BoolInput, DropdownInput, StrInput\nfrom lfx.io import IntInput, MessageInput, ModelInput, MultilineInput, SecretStrInput, SliderInput\n\n\nclass LanguageModelComponent(LCModelComponent):\n    model_provider_policy_mode = \"delegate\"\n    display_name = \"Language Model\"\n    description = \"Runs a language model given a specified provider.\"\n    documentation: str = \"https://docs.langflow.org/components-models\"\n    icon = \"brain-circuit\"\n    category = \"models\"\n\n    inputs = [\n        ModelInput(\n            name=\"model\",\n            display_name=\"Language Model\",\n            info=\"Select your model provider\",\n            real_time_refresh=True,\n            required=True,\n        ),\n        StrInput(\n            name=\"model_name\",\n            display_name=\"Model Name Override\",\n            info=(\n                \"Optional model name to use instead of the selected model. \"\n                \"Can be set from a global variable for runtime model selection.\"\n            ),\n            advanced=True,\n            load_from_db=False,\n        ),\n        StrInput(\n            name=\"provider\",\n            display_name=\"Provider Override\",\n            info=(\n                \"Optional provider to use with Model Name Override. Leave blank to use the selected model's provider.\"\n            ),\n            advanced=True,\n            load_from_db=False,\n        ),\n        SecretStrInput(\n            name=\"api_key\",\n            display_name=\"API Key\",\n            info=\"Overrides global provider settings. Leave blank to use your pre-configured API Key.\",\n            required=False,\n            show=True,\n            real_time_refresh=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"base_url_ibm_watsonx\",\n            display_name=\"watsonx API Endpoint\",\n            info=\"The base URL of the API (IBM watsonx.ai only)\",\n            options=IBM_WATSONX_URLS,\n            value=IBM_WATSONX_URLS[0],\n            combobox=True,\n            show=False,\n            real_time_refresh=True,\n        ),\n        StrInput(\n            name=\"project_id\",\n            display_name=\"watsonx Project ID\",\n            info=\"The project ID associated with the foundation model (IBM watsonx.ai only)\",\n            show=False,\n            required=False,\n        ),\n        StrInput(\n            name=\"ollama_base_url\",\n            display_name=\"Ollama API URL\",\n            info=\"Endpoint of the Ollama API (Ollama only)\",\n            show=False,\n            real_time_refresh=True,\n        ),\n        MessageInput(\n            name=\"input_value\",\n            display_name=\"Input\",\n            info=\"The input text to send to the model\",\n        ),\n        MultilineInput(\n            name=\"system_message\",\n            display_name=\"System Message\",\n            info=\"A system message that helps set the behavior of the assistant\",\n            advanced=False,\n        ),\n        BoolInput(\n            name=\"stream\",\n            display_name=\"Stream\",\n            info=\"Whether to stream the response\",\n            value=False,\n            advanced=True,\n        ),\n        SliderInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.1,\n            info=\"Controls randomness in responses\",\n            range_spec=RangeSpec(min=0, max=1, step=0.01),\n            advanced=True,\n        ),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            info=\"Maximum number of tokens to generate. Set to 0 for no explicit limit. Field name varies by provider.\",\n            advanced=True,\n            range_spec=RangeSpec(min=0, max=128000, step=1, step_type=\"int\"),\n        ),\n    ]\n\n    def build_model(self) -> LanguageModel:\n        model = apply_model_overrides(\n            self.model,\n            model_name=getattr(self, \"model_name\", None),\n            provider=getattr(self, \"provider\", None),\n            user_id=self.user_id,\n            get_options=get_language_model_options,\n        )\n        return get_llm(\n            model=model,\n            user_id=self.user_id,\n            api_key=self.api_key,\n            temperature=self.temperature,\n            stream=self.stream,\n            max_tokens=getattr(self, \"max_tokens\", None),\n            watsonx_url=getattr(self, \"base_url_ibm_watsonx\", None),\n            watsonx_project_id=getattr(self, \"project_id\", None),\n            ollama_base_url=getattr(self, \"ollama_base_url\", None),\n        )\n\n    def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None):\n        \"\"\"Dynamically update build config with user-filtered model options.\"\"\"\n        return handle_model_input_update(self, build_config, field_value, field_name)\n"
+                "track_in_telemetry": false,
+                "password": true,
+                "type": "str",
+                "_input_type": "SecretStrInput"
+              },
+              "gemini_model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "gemini_model",
+                "value": "gemini-3-flash-preview",
+                "display_name": "Modelo Gemini",
+                "advanced": true,
+                "api_editable": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
+              },
+              "groq_api_key": {
+                "load_from_db": true,
+                "override_skip": false,
+                "required": true,
+                "placeholder": "",
+                "show": true,
+                "name": "groq_api_key",
+                "value": "GROQ_API_KEY",
+                "display_name": "Clave Groq",
+                "advanced": false,
+                "api_editable": false,
+                "input_types": [],
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "password": true,
+                "type": "str",
+                "_input_type": "SecretStrInput"
+              },
+              "groq_model": {
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": false,
+                "placeholder": "",
+                "show": true,
+                "name": "groq_model",
+                "value": "openai/gpt-oss-20b",
+                "display_name": "Modelo Groq",
+                "advanced": true,
+                "api_editable": false,
+                "dynamic": false,
+                "info": "",
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "_input_type": "StrInput"
               },
               "input_value": {
-                "_input_type": "MessageInput",
+                "trace_as_input": true,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": true,
+                "placeholder": "",
+                "show": true,
+                "name": "input_value",
+                "value": "",
+                "display_name": "Reporte",
                 "advanced": false,
-                "display_name": "Input",
-                "dynamic": false,
-                "info": "The input text to send to the model",
+                "api_editable": false,
                 "input_types": [
                   "Message"
                 ],
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "name": "input_value",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": true,
+                "dynamic": false,
+                "info": "",
                 "title_case": false,
-                "tool_mode": false,
-                "trace_as_input": true,
-                "trace_as_metadata": true,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": ""
-              },
-              "is_refresh": false,
-              "max_tokens": {
-                "_input_type": "IntInput",
-                "advanced": true,
-                "display_name": "Max Tokens",
-                "dynamic": false,
-                "info": "Maximum number of tokens to generate. Field name varies by provider.",
-                "list": false,
-                "list_add_label": "Add More",
-                "name": "max_tokens",
-                "override_skip": false,
-                "placeholder": "",
-                "range_spec": {
-                  "max": 128000.0,
-                  "min": 1.0,
-                  "step": 1.0,
-                  "step_type": "int"
-                },
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": true,
-                "type": "int",
-                "value": 256
-              },
-              "model": {
-                "_input_type": "ModelInput",
-                "advanced": false,
-                "display_name": "Language Model",
-                "dynamic": false,
-                "external_options": {
-                  "fields": {
-                    "data": {
-                      "node": {
-                        "display_name": "Connect other models",
-                        "icon": "CornerDownLeft",
-                        "name": "connect_other_models"
-                      }
-                    }
-                  }
-                },
-                "info": "Select your model provider",
-                "input_types": [
-                  "LanguageModel"
-                ],
-                "list": false,
-                "list_add_label": "Add More",
-                "model_type": "language",
-                "name": "model",
-                "options": [],
-                "override_skip": false,
-                "placeholder": "Setup Provider",
-                "real_time_refresh": true,
-                "refresh_button": true,
-                "required": true,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_input": true,
-                "track_in_telemetry": false,
-                "type": "model",
-                "value": [
-                  {
-                    "name": "qwen2.5:1.5b",
-                    "provider": "Ollama",
-                    "category": "Ollama",
-                    "metadata": {}
-                  }
-                ]
-              },
-              "model_name": {
-                "_input_type": "StrInput",
-                "advanced": true,
-                "display_name": "Model Name Override",
-                "dynamic": false,
-                "info": "Optional model name to use instead of the selected model. Can be set from a global variable for runtime model selection.",
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "name": "model_name",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": false,
-                "type": "str",
-                "value": ""
-              },
-              "ollama_base_url": {
-                "_input_type": "StrInput",
-                "advanced": false,
-                "display_name": "Ollama API URL",
-                "dynamic": false,
-                "info": "Endpoint of the Ollama API (Ollama only)",
-                "input_types": [],
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "name": "ollama_base_url",
-                "override_skip": false,
-                "placeholder": "",
-                "real_time_refresh": true,
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_input": true,
-                "trace_as_metadata": true,
-                "track_in_telemetry": false,
-                "type": "str",
-                "value": "http://127.0.0.1:11434"
-              },
-              "project_id": {
-                "_input_type": "StrInput",
-                "advanced": false,
-                "display_name": "watsonx Project ID",
-                "dynamic": false,
-                "info": "The project ID associated with the foundation model (IBM watsonx.ai only)",
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "name": "project_id",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": false,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": false,
-                "type": "str",
-                "value": ""
-              },
-              "provider": {
-                "_input_type": "StrInput",
-                "advanced": true,
-                "display_name": "Provider Override",
-                "dynamic": false,
-                "info": "Optional provider to use with Model Name Override. Leave blank to use the selected model's provider.",
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "name": "provider",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": false,
-                "type": "str",
-                "value": ""
-              },
-              "stream": {
-                "_input_type": "BoolInput",
-                "advanced": true,
-                "display_name": "Stream",
-                "dynamic": false,
-                "info": "Whether to stream the response",
-                "list": false,
-                "list_add_label": "Add More",
-                "name": "stream",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "tool_mode": false,
-                "trace_as_metadata": true,
-                "track_in_telemetry": true,
-                "type": "bool",
-                "value": false
+                "_input_type": "MessageInput"
               },
               "system_message": {
-                "_input_type": "MultilineInput",
+                "trace_as_input": true,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "load_from_db": false,
+                "list": false,
+                "list_add_label": "Add More",
+                "override_skip": false,
+                "required": true,
+                "placeholder": "",
+                "show": true,
+                "name": "system_message",
+                "value": "",
+                "display_name": "Instrucciones",
                 "advanced": false,
-                "ai_enabled": false,
-                "copy_field": false,
-                "display_name": "System Message",
-                "dynamic": false,
-                "info": "A system message that helps set the behavior of the assistant",
+                "api_editable": false,
                 "input_types": [
                   "Message"
                 ],
-                "list": false,
-                "list_add_label": "Add More",
-                "load_from_db": false,
-                "multiline": true,
-                "name": "system_message",
-                "override_skip": false,
-                "placeholder": "",
-                "required": false,
-                "show": true,
+                "dynamic": false,
+                "info": "",
                 "title_case": false,
-                "tool_mode": false,
-                "trace_as_input": true,
-                "trace_as_metadata": true,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": ""
-              },
-              "temperature": {
-                "_input_type": "SliderInput",
-                "advanced": true,
-                "display_name": "Temperature",
-                "dynamic": false,
-                "info": "Controls randomness in responses",
-                "max_label": "",
-                "max_label_icon": "",
-                "min_label": "",
-                "min_label_icon": "",
-                "name": "temperature",
-                "override_skip": false,
-                "placeholder": "",
-                "range_spec": {
-                  "max": 1,
-                  "min": 0,
-                  "step": 0.01,
-                  "step_type": "float"
-                },
-                "required": false,
-                "show": true,
-                "slider_buttons": false,
-                "slider_buttons_options": [],
-                "slider_input": false,
-                "title_case": false,
-                "tool_mode": false,
-                "track_in_telemetry": false,
-                "type": "slider",
-                "value": 0
+                "_input_type": "MessageInput"
+              }
+            },
+            "description": "Clasifica con Groq y usa Gemini si Groq no responde o está saturado.",
+            "icon": "brain-circuit",
+            "base_classes": [
+              "Message"
+            ],
+            "display_name": "Groq con respaldo Gemini",
+            "documentation": "",
+            "minimized": false,
+            "custom_fields": {},
+            "output_types": [],
+            "pinned": false,
+            "conditional_paths": [],
+            "frozen": false,
+            "outputs": [
+              {
+                "types": [
+                  "Message"
+                ],
+                "selected": "Message",
+                "name": "text_output",
+                "hidden": null,
+                "display_name": "Clasificación",
+                "method": "classify",
+                "value": "__UNDEFINED__",
+                "cache": true,
+                "required_inputs": null,
+                "allows_loop": false,
+                "loop_types": null,
+                "group_outputs": false,
+                "options": null,
+                "tool_mode": true
+              }
+            ],
+            "field_order": [
+              "input_value",
+              "system_message",
+              "groq_api_key",
+              "gemini_api_key",
+              "groq_model",
+              "gemini_model"
+            ],
+            "beta": false,
+            "legacy": false,
+            "edited": false,
+            "metadata": {
+              "module": "custom_components.groq_con_respaldo_gemini",
+              "code_hash": "4e4dde7e4083",
+              "dependencies": {
+                "total_dependencies": 2,
+                "dependencies": [
+                  {
+                    "name": "httpx",
+                    "version": "0.28.1"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": "1.11.0"
+                  }
+                ]
               }
             },
             "tool_mode": false
           },
           "selected_output": "text_output",
           "showNode": true,
-          "type": "LanguageModelComponent"
+          "type": "SocCloudModel"
         },
         "dragging": false,
-        "id": "LanguageModelComponent-FLeYF",
+        "id": "SocCloudModel-FLeYF",
         "measured": {
-          "height": 341,
-          "width": 320
+          "width": 320,
+          "height": 380
         },
         "position": {
           "x": 420,
@@ -1256,17 +952,100 @@
         "type": "genericNode"
       }
     ],
+    "edges": [
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ChatInput",
+            "id": "ChatInput-b6UCc",
+            "name": "message",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "SocCloudModel-FLeYF",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "reactflow__edge-ChatInput-b6UCc{œdataTypeœ:œChatInputœ,œidœ:œChatInput-b6UCcœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-SocCloudModel-FLeYF{œfieldNameœ:œinput_valueœ,œidœ:œSocCloudModel-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "ChatInput-b6UCc",
+        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-b6UCcœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "SocCloudModel-FLeYF",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œSocCloudModel-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "Prompt",
+            "id": "Prompt-t2oaK",
+            "name": "prompt",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "system_message",
+            "id": "SocCloudModel-FLeYF",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "reactflow__edge-Prompt-t2oaK{œdataTypeœ:œPromptœ,œidœ:œPrompt-t2oaKœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-SocCloudModel-FLeYF{œfieldNameœ:œsystem_messageœ,œidœ:œSocCloudModel-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "Prompt-t2oaK",
+        "sourceHandle": "{œdataTypeœ:œPromptœ,œidœ:œPrompt-t2oaKœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "SocCloudModel-FLeYF",
+        "targetHandle": "{œfieldNameœ:œsystem_messageœ,œidœ:œSocCloudModel-FLeYFœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "SocCloudModel",
+            "id": "SocCloudModel-FLeYF",
+            "name": "text_output",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "ChatOutput-yK0AU",
+            "inputTypes": [
+              "Data",
+              "JSON",
+              "DataFrame",
+              "Table",
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "reactflow__edge-SocCloudModel-FLeYF{œdataTypeœ:œSocCloudModelœ,œidœ:œSocCloudModel-FLeYFœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-ChatOutput-yK0AU{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-yK0AUœ,œinputTypesœ:[œDataœ,œJSONœ,œDataFrameœ,œTableœ,œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "SocCloudModel-FLeYF",
+        "sourceHandle": "{œdataTypeœ:œSocCloudModelœ,œidœ:œSocCloudModel-FLeYFœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "ChatOutput-yK0AU",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-yK0AUœ,œinputTypesœ:[œDataœ,œJSONœ,œDataFrameœ,œTableœ,œMessageœ],œtypeœ:œstrœ}"
+      }
+    ],
     "viewport": {
-      "x": 0,
-      "y": 0,
-      "zoom": 0.7
+      "x": 50.78048780487802,
+      "y": 35,
+      "zoom": 1.159349593495935
     }
-  },
-  "description": "Clasifica un reporte de ciberseguridad y devuelve un objeto JSON.",
-  "endpoint_name": "soc-cybersecurity-classifier",
-  "id": "c4d5feeb-79f6-4e99-abfe-60b042a2b7d4",
-  "is_component": false,
-  "last_tested_version": "1.8.0",
-  "name": "SOC Report Router · Clasificador",
-  "tags": []
+  }
 }

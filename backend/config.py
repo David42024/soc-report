@@ -3,6 +3,7 @@ from base64 import b64decode
 from binascii import Error as Base64Error
 from pathlib import Path
 from typing import Literal
+from urllib.parse import unquote, urlsplit
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
@@ -38,6 +39,24 @@ class Settings(BaseModel):
     chat_gemini_model: str = "gemini-3-flash-preview"
     chat_timeout_seconds: float = Field(default=25, gt=0, le=60)
     chat_limit: int = Field(default=20, ge=1)
+
+    def privacy_secrets(self) -> tuple[str, ...]:
+        """Protect known server credentials even when pasted without a label.
+
+        This tuple is request-local input to the filter, never audit metadata.
+        Provider authentication headers continue to use the original settings.
+        """
+        names = ("operator_token", "internal_token", "langflow_api_key", "n8n_webhook_token",
+                 "jwt_secret", "totp_encryption_key", "groq_api_key", "gemini_api_key")
+        values = []
+        for name in names:
+            value = getattr(self, name)
+            values.append(value.get_secret_value() if isinstance(value, SecretStr) else value)
+        for url in (self.database_url, self.redis_url):
+            values.append(url)
+            if url:
+                values.append(unquote(urlsplit(url).password or ""))
+        return tuple(value for value in values if value)
 
     @model_validator(mode="after")
     def validate_credentials(self):

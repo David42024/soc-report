@@ -15,9 +15,10 @@ def update():
         raise RuntimeError('La actualización exige un Langflow local.')
     endpoint = '/api/v1/flows/' + config['LANGFLOW_FLOW_ID']
     code = (ROOT / 'integrations/langflow/cloud_classifier_model.py').read_text(encoding='utf-8')
-    with httpx.Client(base_url=base, timeout=20, trust_env=False) as client:
-        auth = client.get('/api/v1/auto_login').raise_for_status().json()
-        client.headers['Authorization'] = 'Bearer ' + auth['access_token']
+    if not config.get('LANGFLOW_API_KEY'):
+        raise RuntimeError('La actualización requiere la credencial Langflow existente.')
+    with httpx.Client(base_url=base, timeout=20, trust_env=False,
+                      headers={'x-api-key': config['LANGFLOW_API_KEY']}) as client:
         graph = client.get(endpoint).raise_for_status().json()['data']
         models = [item for item in graph['nodes'] if item['data']['type'] == 'SocCloudModel']
         if len(models) != 1:

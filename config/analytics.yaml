@@ -1,0 +1,269 @@
+version: 1
+seed: 42
+registry_file: config/datasets.yaml
+runs_dir: runs
+api:
+  base_url: http://127.0.0.1:8000
+  timeout_seconds: 8
+  connect_timeout_seconds: 3
+  max_response_bytes: 5242880
+  endpoints:
+    health: /health
+    login: /api/auth/login
+    me: /api/auth/me
+    logout: /api/auth/logout
+    reports: /api/reportes
+    report_collaboration: /api/reportes/{report_id}/colaboracion
+    analytical_audit: /api/analitica/eventos
+    report_explainability: /api/reportes/{report_id}/explicabilidad
+    dashboard: /api/dashboard
+    inference_metrics: /api/analitica/inferencia/indicadores
+flow_validation:
+  export_file: integrations/langflow/cybersecurity_classifier.json
+  component_file: integrations/langflow/cloud_classifier_model.py
+  prompt_file: integrations/langflow/prompt.txt
+  flow_path: /api/v1/flows/{flow_id}
+  variables_path: /api/v1/variables/
+  run_path: /api/v1/run/{flow_id}
+  expected_groq_model: openai/gpt-oss-20b
+  expected_gemini_model: gemini-3-flash-preview
+  groq_variable: GROQ_API_KEY
+  gemini_variable: GEMINI_API_KEY
+  probe_source_id: vcdb_pilot
+  probe_case_index: 0
+  invalid_primary_model: soc-phase0-nonexistent-model
+  result_file: runs/flow-conformance.json
+ui:
+  title: SOC · Entorno analítico
+  host: 127.0.0.1
+  port: 8502
+  entrypoint: app.py
+  cache_seconds: 60
+  cache_entries: 16
+  session_check_seconds: 30
+  poll_seconds: 1
+  workers: 4
+  preview_rows: 5
+  max_json_bytes: 4194304
+  max_zip_member_bytes: 2097152
+  preview_characters: 180
+  pages:
+    - path: pages/00_Inicio.py
+      title: Inicio
+    - path: pages/01_Fuentes.py
+      title: Fuentes existentes
+    - path: pages/02_Registros.py
+      title: Registros de validación
+    - path: pages/03_Datos.py
+      title: Datos del SOC
+    - path: pages/04_Experimentacion.py
+      title: Experimentación
+    - path: pages/05_Evaluacion.py
+      title: Evaluación estadística
+    - path: pages/06_Explicabilidad.py
+      title: Explicabilidad textual
+    - path: pages/07_Informes.py
+      title: Reportes científicos y operacionales
+    - path: pages/08_Inferencia.py
+      title: Inferencia individual
+    - path: pages/09_Optuna.py
+      title: Optimización Optuna
+data:
+  directory: phase1
+  sealed_holdout_file: .venv/soc-runtime/dataset/holdout-reviewed.json
+  prior_pilot_exclusions_file: integrations/dataset/vcdb-pilot-exclusions.json
+  page_sizes: [10, 25, 50]
+  max_source_rows: 25000
+  max_csv_bytes: 67108864
+  max_text_characters: 20000
+  max_history_entries: 100
+  similarity_threshold: 0.86
+  similarity_min_words: 8
+  similarity_batch_size: 64
+  similarity_features: 65536
+  similarity_aliases:
+    correo electrónico: email
+    correo malicioso: email malicioso
+    secuestro de datos: ransomware
+    suplantación: impersonation
+    filtración de datos: data breach
+    fuga de datos: data breach
+    acceso no autorizado: unauthorized access
+    denegación de servicio: denial of service
+    servidor: server
+  imbalance_ratio: 4.0
+  max_examples: 20
+  chart_categories: 12
+  histogram_bins: 15
+  vocabulary: [acceso, acceso no autorizado, autenticación, correo, correo falso, cuenta, credenciales, datos, fuga de datos, denegación de servicio, ddos, dominio, endpoint, enlace, exfiltración, fraude, infección, intrusión, malware, phishing, ransomware, red, servidor, servicio, suplantación, tráfico, vulnerabilidad, vulnerability, authentication, email, data theft, data breach, denial of service, unauthorized access, network, server, credentials, account, exploit, incident, firewall, cve, cifrado, encryption, backup, bloqueo, log]
+training:
+  directory: phase2
+  outer_folds: 5
+  inner_folds: 3
+  ratios: [0.70, 0.15, 0.15]
+  fold_seed_attempts: 32
+  partition_timeout_seconds: 30
+  default_trials_per_fold: 5
+  max_trials_per_fold: 30
+  c_search_factor: 10
+  cpu_threads: 1
+  max_jobs: 1
+  recent_events: 40
+  demo_groups_per_class: 20
+  local:
+    ngram_min: 1
+    ngram_max: 2
+    min_df: 1
+    max_df: 1.0
+    max_features: 10000
+    sublinear_tf: true
+    smooth_idf: true
+    c: 1.0
+    balanced: true
+    solver: lbfgs
+    max_iter: 2000
+  cloud:
+    prompts:
+      vigente: null
+      evidencia_explicita_v1: config/prompts/soc_evidencia_explicita_v1.txt
+    thresholds: [0.65, 0.75, 0.85]
+    default_threshold: 0.75
+    max_flow_calls: 12000
+    seconds_between_calls: 5
+    attempts_per_flow: 3
+    max_consecutive_errors: 3
+    approved_component_sha256: 50175dc0cfc0afb741a2c7ac1456db11585a946596321ceb967032be4d776c95
+    max_prompt_chars: 2500
+    max_case_chars: 3500
+    max_cost_per_flow_usd: "0"
+    max_run_budget_usd: "0"
+evaluation:
+  directory: phase3
+  min_real_groups_per_class: 5
+  min_ci_groups: 20
+  min_ci_groups_per_class: 5
+  min_test_groups: 20
+  min_discordant: 6
+  bootstrap_replicates: 1000
+  bootstrap_min_fraction: 0.80
+  alpha: 0.05
+  practical_accuracy_delta: 0.05
+  max_artifact_bytes: 67108864
+  inspection_characters: 650
+explainability:
+  directory: phase4
+  criteria_version: soc-spec-2.1-text-v1
+  top_features: 12
+  max_cases: 120
+  max_spans: 20
+  max_text_characters: 12000
+  tolerance: 0.00000001
+  negation_prefixes: ['no hay', 'sin indicios de', 'no se detectó', 'no se confirmó', 'se descartó', 'no se observó']
+  criteria:
+    - field: tipo
+      value: phishing
+      description: Suplantación o engaño mediante mensajes y enlaces.
+      phrases: ['phishing', 'suplantación', 'mensaje falso', 'correo falso', 'enlace sospechoso']
+    - field: tipo
+      value: malware
+      description: Software malicioso o indicios de infección.
+      phrases: ['malware', 'ransomware', 'software malicioso', 'archivos cifrados', 'troyano']
+    - field: tipo
+      value: acceso_no_autorizado
+      description: Acceso o intento de acceso sin autorización.
+      phrases: ['acceso no autorizado', 'acceso sin permiso', 'sesión desconocida']
+    - field: tipo
+      value: ddos
+      description: Denegación de servicio distribuida.
+      phrases: ['ddos', 'denegación de servicio distribuida']
+    - field: tipo
+      value: fuga_datos
+      description: Divulgación, exposición o extracción indebida de datos.
+      phrases: ['fuga de datos', 'exfiltración', 'datos filtrados', 'exposición de datos']
+    - field: tipo
+      value: vulnerabilidad
+      description: Debilidad técnica o configuración insegura.
+      phrases: ['vulnerabilidad', 'configuración insegura', 'CVE']
+    - field: tipo
+      value: uso_indebido
+      description: Uso de recursos contrario a políticas autorizadas.
+      phrases: ['uso indebido', 'fin personal', 'fuera de política']
+    - field: tipo
+      value: incidente_fisico
+      description: Evento físico con impacto en seguridad de activos.
+      phrases: ['robo', 'acceso físico', 'incidente físico']
+    - field: tipo
+      value: fraude
+      description: Engaño con propósito de obtener beneficio indebido.
+      phrases: ['fraude', 'estafa', 'transferencia fraudulenta']
+    - field: severidad
+      value: critica
+      description: Afectación activa grave, exfiltración confirmada o servicio esencial caído según el prompt vigente.
+      phrases: ['afectación activa grave', 'exfiltración confirmada', 'servicio esencial caído']
+    - field: severidad
+      value: alta
+      description: Compromiso probable o impacto material según el prompt vigente.
+      phrases: ['compromiso probable', 'impacto material']
+    - field: severidad
+      value: media
+      description: Sospecha o impacto limitado según el prompt vigente.
+      phrases: ['sospecha', 'impacto limitado']
+    - field: severidad
+      value: baja
+      description: Consulta o impacto menor según el prompt vigente.
+      phrases: ['consulta', 'impacto menor']
+inference:
+  directory: phase6
+  request_timeout_seconds: 130
+  max_metric_records: 1000
+  latency_min_observations: 20
+  target_p95_seconds: 10
+  lexical_min_terms: 1
+optimization:
+  directory: phase7
+  default_trials: 10
+  default_timeout_seconds: 600
+  max_timeout_seconds: 7200
+  max_parallel_trials: 2
+  max_total_cpu_threads: 2
+  max_grid_points: 512
+  max_config_bytes: 65536
+  importance_min_trials: 10
+  importance_trees: 64
+  contour_min_points: 6
+  max_plot_parameters: 4
+  startup_trials: 5
+  warmup_steps: 1
+  local_space:
+    c: {kind: float, low: 0.00000001, high: 10.0, log: true}
+    max_df: {kind: categorical, choices: [0.15, 0.5, 1.0]}
+    max_features: {kind: categorical, choices: [10, 40, 400]}
+    ngram_max: {kind: int, low: 1, high: 3}
+reporting:
+  directory: phase5
+  max_selections: 4
+  figure_width_inches: 7.1
+  figure_height_inches: 3.8
+logging:
+  level: INFO
+  max_bytes: 1048576
+  backups: 3
+figures:
+  dpi: 600
+  font_family: DejaVu Sans
+  font_size: 11
+  palette: ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9', '#F0E442', '#000000']
+software:
+  - streamlit
+  - pandas
+  - numpy
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - optuna
+  - joblib
+  - threadpoolctl
+  - fastapi
+  - httpx
+  - pydantic
+  - PyYAML

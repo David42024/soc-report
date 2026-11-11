@@ -24,12 +24,15 @@ from .security import PlatformSecurity
 from .runtime import RuntimeServices
 from .platform import install_platform_routes
 from .chat import install_chat_route
-from .routing import routing_policy
+from .routing import routing_policy, assignment_for
 from .operations import install_operations
 from .navigation import expire_visits
 from .provider_health import ProviderHealth
 from .impact_study import install_impact_study
 from .report_input import ReportInput
+from .analytics_audit import install_analytical_audit
+from .explainability import install_explainability
+from .inference import install_inference
 
 
 class Rule(BaseModel):
@@ -84,6 +87,9 @@ def create_app(settings=None):
     app.state.db = db
     app.state.security = security
     install_chat_route(app, security, settings)
+    install_analytical_audit(app, db, security)
+    install_explainability(app, db, security, settings)
+    install_inference(app, db, security)
     app.mount("/static", StaticFiles(directory=ROOT / "frontend" / "dist"), name="static")
 
     @app.exception_handler(RequestValidationError)
@@ -172,11 +178,7 @@ def create_app(settings=None):
 
     def route_for(report):
         rules = routing_policy(db, report["id"])["configuration"]
-        team = (
-            rules["equipo_revision"] if report["motivo_revision"]
-            else rules["equipos"][report["tipo"]]
-        )
-        return {"responsable": team, **rules["sla"][report["severidad"]]}
+        return assignment_for(report, rules)
 
     def dispatch(report):
         if report["notificado_at"]:

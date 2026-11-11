@@ -1,0 +1,1 @@
+Para resolver una ambigüedad de tipo o severidad, da mayor peso a las observaciones directas del reporte. Trata como indicios las hipótesis o afirmaciones sin corroboración. Conserva los mismos campos y la taxonomía descrita.

@@ -241,3 +241,9 @@ CREATE TABLE IF NOT EXISTS notification_reads (
     read_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (report_id,user_id)
 );
+CREATE TABLE IF NOT EXISTS report_ai_inputs (
+    report_id TEXT PRIMARY KEY REFERENCES reports(id),
+    payload TEXT NOT NULL,
+    sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);

@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([ValidateRange(30,1800)][int]$TimeoutSeconds=600, [switch]$Restart)
+param([ValidateRange(30,1800)][int]$TimeoutSeconds=600, [switch]$Restart, [switch]$RestartLangflow)
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -38,6 +38,27 @@ function Get-ProjectProcess([string]$Name,[string]$Pattern) {
     if (-not [int]::TryParse((Get-Content -LiteralPath $pidFile -Raw).Trim(), [ref]$projectPid)) { return }
     $process=Get-CimInstance Win32_Process -Filter "ProcessId=$projectPid"
     if ($process -and $process.CommandLine -like $Pattern) { return $process }
+}
+
+function Stop-ProjectService([string]$Name,[string]$Pattern) {
+    $serviceProcess=Get-ProjectProcess $Name $Pattern
+    if (-not $serviceProcess) { return }
+    # A Windows venv launcher has a child interpreter. Stopping only the
+    # launcher leaves the old service (and its old privacy code) running.
+    $pending=[Collections.Generic.Queue[int]]::new()
+    $serviceIds=[Collections.Generic.List[int]]::new()
+    $pending.Enqueue([int]$serviceProcess.ProcessId)
+    while ($pending.Count) {
+        $servicePid=$pending.Dequeue()
+        $serviceIds.Add($servicePid)
+        foreach ($child in (Get-CimInstance Win32_Process -Filter "ParentProcessId=$servicePid")) {
+            if ($child.CreationDate -ge $serviceProcess.CreationDate) { $pending.Enqueue([int]$child.ProcessId) }
+        }
+    }
+    $ids=$serviceIds.ToArray()
+    [array]::Reverse($ids)
+    Stop-Process -Id $ids -ErrorAction SilentlyContinue
+    Wait-Process -Id $ids -Timeout 15 -ErrorAction SilentlyContinue
 }
 
 function Start-IfNeeded([string]$Name,[string]$Executable,[string]$Arguments,[string]$Pattern,[string]$Url) {
@@ -87,6 +108,8 @@ try {
     $env:LANGFLOW_SSRF_ALLOWED_HOSTS='127.0.0.1'
     $env:LANGFLOW_AUTO_LOGIN='true'
     $env:LANGFLOW_DO_NOT_TRACK='true'
+    # Both Python services load the same local privacy filter and YAML policy.
+    $env:PYTHONPATH=if ($env:PYTHONPATH) { "$root$([IO.Path]::PathSeparator)$env:PYTHONPATH" } else { $root }
     if (Test-Http 'http://127.0.0.1:7861/health') {
         $listeners=Get-NetTCPConnection -State Listen -LocalPort 7861 -ErrorAction SilentlyContinue
         foreach ($listener in $listeners) {
@@ -96,13 +119,12 @@ try {
             }
         }
     }
+    if ($RestartLangflow) {
+        Stop-ProjectService 'Langflow' '*langflow*run*--port 7861*'
+    }
     Start-IfNeeded 'Langflow' $langflow 'run --host 127.0.0.1 --port 7861' '*langflow*run*--port 7861*' 'http://127.0.0.1:7861/health'
     if ($Restart) {
-        $process=Get-ProjectProcess 'FastAPI' '*uvicorn backend.main:app*'
-        if ($process) {
-            Stop-Process -Id $process.ProcessId
-            Wait-Process -Id $process.ProcessId -Timeout 15 -ErrorAction SilentlyContinue
-        }
+        Stop-ProjectService 'FastAPI' '*uvicorn backend.main:app*'
     }
     Start-IfNeeded 'FastAPI' $python '-m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --no-access-log' '*uvicorn backend.main:app*' 'http://127.0.0.1:8000/health'
     $watch=[Diagnostics.Stopwatch]::StartNew()

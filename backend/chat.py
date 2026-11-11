@@ -8,6 +8,7 @@ from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .config import ROOT
+from src.utils.privacy import PrivacyError, protect_messages
 
 SYSTEM = """You are the help assistant for SOC Report Router, a cybersecurity incident reporting app.
 Explain the app and give concise, practical defensive security guidance.
@@ -66,16 +67,21 @@ def response_text(value):
 
 
 async def groq_reply(client, settings, instruction, messages, *, token_limit=1536):
+    protected, _ = protect_messages([{"role": "system", "content": instruction}, *messages],
+        known_secrets=settings.privacy_secrets())
     response = await client.post("https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": "Bearer " + settings.groq_api_key.get_secret_value()},
         json={"model": settings.chat_groq_model,
-              "messages": [{"role": "system", "content": instruction}, *messages],
+              "messages": protected,
               "reasoning_effort": "low", "max_completion_tokens": token_limit})
     response.raise_for_status()
     return response_text(response.json()["choices"][0]["message"]["content"])
 
 
 async def gemini_reply(client, settings, instruction, messages, *, token_limit=1536, thinking_level=None):
+    protected, _ = protect_messages([{"role": "system", "content": instruction}, *messages],
+        known_secrets=settings.privacy_secrets())
+    instruction, messages = protected[0]["content"], protected[1:]
     model = quote(settings.chat_gemini_model, safe="")
     generation = {"maxOutputTokens": token_limit}
     if thinking_level:
@@ -95,7 +101,14 @@ async def answer(payload, settings):
     rules = json.loads((ROOT / "integrations/reglas.json").read_text(encoding="utf-8"))
     instruction = SYSTEM.format(language="Spanish" if payload.language == "es" else "English",
                                 rules=json.dumps(rules, ensure_ascii=False))
-    messages = [message.model_dump() for message in payload.messages]
+    try:
+        protected, _ = protect_messages([{"role": "system", "content": instruction},
+            *(message.model_dump() for message in payload.messages)],
+            known_secrets=settings.privacy_secrets())
+    except PrivacyError:
+        raise HTTPException(503, "La protección de privacidad no está disponible; envío bloqueado." if payload.language == "es"
+                            else "Privacy protection is unavailable; sending is blocked.") from None
+    instruction, messages = protected[0]["content"], protected[1:]
     timeout = httpx.Timeout(settings.chat_timeout_seconds, connect=5)
     async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
         for provider, key, complete in (
@@ -106,6 +119,9 @@ async def answer(payload, settings):
                 continue
             try:
                 text = await complete(client, settings, instruction, messages)
+            except PrivacyError:
+                raise HTTPException(503, "La protección de privacidad no está disponible; envío bloqueado." if payload.language == "es"
+                                    else "Privacy protection is unavailable; sending is blocked.") from None
             except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError, AttributeError):
                 continue
             return ChatReply(reply=text, provider=provider)

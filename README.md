@@ -2,6 +2,42 @@
 
 Plataforma local de clasificación y enrutamiento de reportes. El formulario React envía los datos a FastAPI. Langflow clasifica con Groq y respaldo de Gemini. FastAPI valida y guarda en PostgreSQL antes de invocar n8n. El workflow asigna el equipo y los plazos, y registra el aviso interno.
 
+## Entorno analítico Streamlit fase 0
+
+La interfaz analítica reutiliza FastAPI, sus cuentas y permisos, y las fuentes originales registradas. Incluye Inicio, Fuentes existentes y Registros de validación. La arquitectura, fuentes, límites y comprobaciones están en [docs/FASE_0.md](docs/FASE_0.md).
+
+La validación contra el SPEC definitivo 2.1 y sus pendientes se documentan en [docs/ALINEACION_SPEC_FASE_0.md](docs/ALINEACION_SPEC_FASE_0.md). La coherencia de LangFlow se comprueba con `python -m scripts.align_langflow`; `--sync` conserva los proveedores y enlaza variables globales existentes antes de exportar el grafo sin claves.
+
+La protección del texto antes de Groq/Gemini se configura en `config/privacy.yaml` y se documenta con sus pruebas y límites en [docs/SEGURIDAD_PRIVACIDAD.md](docs/SEGURIDAD_PRIVACIDAD.md). Se conserva el reporte original bajo los permisos existentes. Una política de privacidad inválida bloquea la transmisión. Tras actualizar el filtro compartido, `Start-Soc.ps1 -Restart -RestartLangflow` recarga ambos servicios Python.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m scripts.analytics --check
+.\.venv\Scripts\python.exe -m scripts.analytics
+```
+
+Abre http://127.0.0.1:8502. Para acceder a las fuentes, inicia los servicios con `Start-Soc.ps1` y usa tu cuenta SOC. La configuración pública está en `config/analytics.yaml` y `config/datasets.yaml`; los registros locales quedan en `runs/`, excluido de Git.
+
+## Fase 1 · Datos del SOC
+
+En Streamlit, entra en **Datos del SOC → Cargar inventario** con una cuenta de Administrador, Analista o Gestor. Puedes explorar las ocho fuentes registradas, consultar calidad y estadísticas, y descargar las figuras a 600 DPI. Administrador y Analista pueden confirmar correcciones analíticas y guardar manifiestos versionados. Los archivos de origen y los reportes operativos se consultan en lectura. La metodología, la matriz de aceptación y las evidencias se documentan en [docs/FASE_1.md](docs/FASE_1.md).
+
+## Fase 2 · Experimentación SOC
+
+En **Experimentación** puedes preparar la partición agrupada, ejecutar la prueba técnica sintética con regresión logística y SVM lineal, y seguir cada fold y trial de Optuna. La modalidad LangFlow consulta el clasificador existente y requiere referencias humanas suficientes, un sello de Prueba y un presupuesto autorizado. Los comandos, el protocolo y el alcance verificado están en [docs/FASE_2.md](docs/FASE_2.md).
+
+## Fase 3 · Evaluación estadística
+
+En **Evaluación estadística** puedes consultar las configuraciones finales de Fase 2, validar el sello de Prueba, evaluar una vez por configuración y cohorte y comparar los resultados archivados. La página ofrece matrices, curvas cuando existen scores válidos, contrastes pareados y exportaciones. La evaluación real requiere referencias humanas verificables. El recorrido técnico se reproduce con una corrida sintética completa de Fase 2. [Protocolo, resultados y comandos](docs/FASE_3.md).
+
+## Fase 4 · Explicabilidad textual
+
+En **Explicabilidad textual** puedes inspeccionar evidencia citada de reportes operativos y contribuciones de los modelos académicos finales. La página ofrece mapas de términos, SHAP lineal, comprobaciones de estabilidad y comparación con intervalos humanos registrados. El acceso a textos y originales usa los permisos y la auditoría del SOC. [Método, ejemplos y comandos](docs/FASE_4.md).
+
+## Fase 5 · Reportes científicos y operacionales
+
+En **Reportes científicos y operacionales**, las cuentas con permiso de exportación pueden seleccionar evidencias de las Fases 1 a 4, fechas operativas y plantillas académica, técnica o ejecutiva. El módulo ofrece previsualización y genera PDF, Word, Excel y figuras PNG de 600 DPI con SVG vectorial. Cada versión conserva cifras, interpretaciones, limitaciones y huellas de sus fuentes. [Ejecución, método y validación](docs/FASE_5.md).
+
 ## Arranque en Windows PowerShell
 
 El entorno preparado utiliza las instalaciones existentes de Python y Langflow. Docker Desktop ejecuta PostgreSQL 16, Redis y n8n. Las dependencias Python permanecen en .venv.
@@ -224,7 +260,7 @@ Comparte `blinded-cases.json` y una planilla distinta con cada revisor. Cada per
 
     & $py -m scripts.vcdb_review freeze --archive $zip --packet "$dir\holdout-packet\packet.json" --review-a "$dir\holdout-packet\review-a.json" --review-b "$dir\holdout-packet\review-b.json" --output "$dir\holdout-reviewed.json"
 
-Si hay discrepancias, añade `--adjudication` con la ruta de ese JSON. Una vez congelado, pasa `holdout-reviewed.json` a `Test-SocDataset.ps1 -Run` mediante `-ReviewedCases` y usa un `RunId` nuevo. Mantén los formularios separados y archívalos junto con el registro de exclusiones para conservar la trazabilidad del estudio.
+Si hay discrepancias, añade `--adjudication` con la ruta de ese JSON. Para el estudio de Fase 3, registra `holdout-reviewed.json` mediante un manifiesto de **Datos del SOC** y evalúalo desde **Evaluación estadística**. Usa el piloto u otra muestra independiente del estudio para probar el flujo integrado con `Test-SocDataset.ps1`. Archiva los formularios junto con el registro de exclusiones para conservar la trazabilidad.
 
 La evaluación compara tipos con las reglas demo sobre los mismos textos y calcula cobertura, error entre los casos aceptados automáticamente y F1 macro entre las clasificaciones evaluables. Registra por separado fallos de servicio y motivos de revisión. Los plazos se verifican contra la política del sistema. El piloto y las corridas retrospectivas carecen de hitos operativos comparables para estimar horas de trabajo humano ahorradas o mejoras reales de SLA.
 
@@ -239,3 +275,17 @@ Antes de cambiar el esquema de una base existente, el arranque genera un respald
 .env conserva la configuración del modelo y los secretos de los servicios. compose.env y access.json están dentro de .venv. Los directorios de datos se montan de forma persistente. Stop-Soc.ps1 detiene los servicios sin eliminar esos directorios.
 
 WeasyPrint genera PDF reutilizando las bibliotecas GTK/Pango de Tesseract instaladas en este PC. WEASYPRINT_DLL_DIRECTORIES y FONTCONFIG_FILE se configuran durante el bootstrap.
+
+## Inferencia individual en Streamlit · Fase 6
+
+Ejecuta `.venv/Scripts/python.exe -m scripts.analytics` y abre `http://127.0.0.1:8502`. La página **Inferencia individual** permite validar y proteger un reporte nuevo, clasificarlo mediante el webhook existente o consultar una predicción guardada. Requiere sesión de Analista o Administrador. Presenta proveedor/modelo observado, revisión, evidencia textual, asignación/SLA, bitácora y latencias; conserva un UUID para consultar un envío cuyo recibo no se haya confirmado.
+
+La confianza es un puntaje operacional sin calibración acreditada. Las métricas humanas reales, los IC y los análisis probabilísticos conservan su estado pendiente o no aplicable según la evidencia. Consulta la metodología, archivos, pruebas y matriz de aceptación en [docs/FASE_6.md](docs/FASE_6.md).
+
+## Optimización Optuna · Fase 7
+
+La página **Optimización Optuna** del mismo Streamlit configura TPE, Random o Grid, espacios tipados, pruners, objetivos y límites. Utiliza el motor y las particiones 5×3 de Fase 2. Conserva estudios estándar en `runs/phase2/<ejecución>/optuna.journal`, permite recuperación y monitoriza trials sin bloquear la interfaz. Las configuraciones y candidatas se guardan en `runs/phase7/` y se transfieren explícitamente a Experimentación.
+
+La demostración local se reproduce con `.venv/Scripts/python.exe -m scripts.soc_optimize --trials 10`. El comando `.venv/Scripts/python.exe -m scripts.verify_optimization` genera evidencia con FastAPI/JWT aislados, figuras y candidata, usando solo datos sintéticos. Las búsquedas cloud requieren referencias válidas, límites monetarios positivos y autorización explícita; no se despliegan candidatas automáticamente.
+
+Consulta [implementación y resultados de Fase 7](docs/FASE_7.md) y la [matriz general de Fases 0–7](docs/CUMPLIMIENTO_FASES_0_A_7.md), que distingue capacidades implementadas, verificaciones y pendientes empíricos.

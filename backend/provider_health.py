@@ -6,6 +6,7 @@ import httpx
 
 from .chat import gemini_reply, groq_reply
 from .db import utc_now
+from src.utils.privacy import PrivacyError
 
 COOLDOWN_SECONDS = 300
 PROBE_TIMEOUT_SECONDS = 25
@@ -50,6 +51,8 @@ class ProviderHealth:
                         reason = "sin_respuesta"
                     except (ValueError, KeyError, IndexError, TypeError, AttributeError):
                         reason = "respuesta_invalida"
+                    except PrivacyError:
+                        reason = "privacidad_no_disponible"
                     return name, {"estado": "error" if reason else "ok", "verificado_at": utc_now(), "motivo": reason}
 
                 results = await asyncio.gather(*(probe(name, *config) for name, config in self.providers.items()))
