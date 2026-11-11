@@ -137,7 +137,7 @@ Las peticiones rechazan URLs con credenciales embebidas y HTTP remoto; se usa HT
 
 Los registros previos de evaluación VCDB permanecen en `.venv/soc-runtime/dataset/`. Los logs nuevos están en `runs/_logs/analytics.log`. Ambos espacios y los artefactos pesados quedan excluidos de Git.
 
-El lanzador fija `PYTHONHASHSEED` antes de iniciar Streamlit. La aplicación fija las semillas de Python y NumPy. Red, autenticación y hashing se ejecutan en trabajadores; la interfaz consulta sus futures mediante fragmentos. Los resultados privados pertenecen a la sesión. La lectura del catálogo de metadatos usa caché; el hashing se solicita explícitamente.
+El lanzador fija `PYTHONHASHSEED` antes de iniciar Streamlit. La aplicación fija las semillas de Python y NumPy. Las operaciones de red, el inicio de sesión y el hashing se ejecutan en trabajadores; la interfaz consulta sus futures mediante fragmentos. La comprobación periódica de identidad se completa en el mismo ciclo de interacción, con el timeout HTTP configurado, para conservar los selectores y procesar el clic que la desencadenó. Los resultados privados pertenecen a la sesión. La lectura del catálogo de metadatos usa caché; el hashing se solicita explícitamente.
 
 Cada tabla incorpora título, unidades o leyenda, Cómo leerlo, hallazgo calculado y limitaciones. La paleta de figuras es apta para deficiencias de visión de color y las exportaciones PNG exigen al menos 600 DPI. No se generan gráficos de modelos en esta fase.
 

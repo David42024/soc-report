@@ -30,6 +30,24 @@ catalog = st.session_state.get("informe_catalog_result")
 if catalog is None:
     st.stop()
 
+publications = catalog.get("publications", [])
+with st.expander(f"Histórico de informes publicados ({len(publications)})"):
+    if publications:
+        st.dataframe(publications, hide_index=True, width="stretch")
+        version = st.selectbox("Informe publicado", [row["Versión"] for row in publications], key="informe_archive_version")
+        if st.button("Preparar descargas del informe", key="informe_archive_load", disabled="informe_archive" in st.session_state):
+            start_task(runtime, "informe_archive", workspace.read_publication, version, session.token)
+        poll_task(runtime, "informe_archive", "Comprobando los archivos y sus huellas…")
+        if error := st.session_state.get("informe_archive_error"):
+            st.error(error)
+        if archived := st.session_state.get("informe_archive_result"):
+            st.caption("Versión verificada · " + archived["run_id"])
+            for index, output in enumerate(archived["outputs"]):
+                st.download_button(output.filename, output.data, file_name=output.filename, mime=output.mime,
+                                   key=f"informe_archive_download_{index}")
+    else:
+        st.caption("Los informes generados quedan disponibles aquí después de actualizar las evidencias.")
+
 template = st.selectbox("Plantilla", tuple(TEMPLATES), format_func=lambda key: TEMPLATES[key].title, key="informe_template")
 sections = st.multiselect("Secciones", tuple(SECTION_TITLES), default=TEMPLATES[template].sections,
                          format_func=SECTION_TITLES.get, key="informe_sections_" + template)

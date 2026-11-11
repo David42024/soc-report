@@ -9,6 +9,7 @@ from typing import Callable
 import streamlit as st
 
 from src.data.manifest import holdout_status
+from src.data.demo import demo_path, demo_summary, is_demo
 from src.data.models import DataRecord, DataSource, LABEL_NAMES, PROVENANCE_NAMES, SEVERITIES, TARGETS, TYPES
 from src.data.quality import quality_checks
 from src.data.statistics import (
@@ -334,13 +335,32 @@ def statistics_view(view: DataView, source: DataSource) -> None:
 
 def manifests_view(view: DataView) -> None:
     status = holdout_status(view.inventory, view.groups)
-    rows = [{"Objetivo": LABEL_NAMES[key], "Prueba disponible": "Sí" if ready else "Pendiente",
-             "Casos revisados de la reserva": status["reviewed_cases"] if key == "tipo" else None}
-            for key, ready in status["test_ready_by_target"].items()]
-    render_table(rows, TableGuide("Estado de la prueba reservada por objetivo", "Casos en registros. La disponibilidad depende de evidencia de revisión.",
-        "Consulta el resultado por objetivo antes de preparar experimentos.",
-        f"{status['preparation_pending']} de {status['reserved_count']} candidatos reservados tienen decisiones pendientes. "
-        f"El artefacto revisado figura como {status['artifact_status']}.", status["field_scope"]))
+    if is_demo(view.inventory):
+        demo = demo_summary(view.inventory)
+        rows = [{"Objetivo": LABEL_NAMES[key], "Prueba sintética": "Disponible" if ready else "Pendiente",
+                 "Casos de prueba con etiqueta": sum(demo["reserved_counts_by_target"][key].values()),
+                 "Cobertura total (%)": 100 * demo["complete_by_target"][key] / demo["total_cases"],
+                 "Procedencia": "Generada; sin revisión humana"} for key, ready in demo["ready_by_target"].items()]
+        render_table(rows, TableGuide("Estado de la demostración sintética por objetivo", "Casos artificiales y porcentajes de cobertura.",
+            "Los tres objetivos tienen etiquetas simuladas. El manifiesto conserva su naturaleza sintética.",
+            f"{demo['total_cases']} casos completos: {demo['development_cases']} para desarrollo y {demo['reserved_cases']} para prueba sintética.",
+            "La disponibilidad simulada no modifica la reserva real ni acredita desempeño operacional."))
+        partitions = Counter(record.partition for record in view.inventory.records())
+        render_table([{"Partición": name, "Casos": count} for name, count in partitions.items()],
+            TableGuide("Distribución de la demostración", "Una fila por partición sintética.",
+                "Las particiones usan grupos distintos.", f"{len(view.groups.members)} grupos identificados.",
+                "Los textos y etiquetas son artificiales; esta distribución es para demostración."))
+        source_path = runtime.settings.path(view.inventory.sources[0].location)
+        st.download_button("Descargar los casos sintéticos", source_path.read_bytes(), file_name=source_path.name,
+                           mime="application/json", key="data_demo_download", on_click="ignore")
+    else:
+        rows = [{"Objetivo": LABEL_NAMES[key], "Prueba disponible": "Sí" if ready else "Pendiente",
+                 "Casos revisados de la reserva": status["reviewed_cases"] if key == "tipo" else None}
+                for key, ready in status["test_ready_by_target"].items()]
+        render_table(rows, TableGuide("Estado de la prueba reservada por objetivo", "Casos en registros. La disponibilidad depende de evidencia de revisión.",
+            "Consulta el resultado por objetivo antes de preparar experimentos.",
+            f"{status['preparation_pending']} de {status['reserved_count']} candidatos reservados tienen decisiones pendientes. "
+            f"El artefacto revisado figura como {status['artifact_status']}.", status["field_scope"]))
     for reason in status["reasons"]:
         st.warning(reason)
     if session.user.can("write") and st.button("Guardar manifiesto versionado", type="primary",
@@ -368,6 +388,21 @@ def manifests_view(view: DataView) -> None:
                            mime="application/json", key="data_manifest_download", on_click="ignore")
 
 
+def change_data_mode() -> None:
+    for key in list(st.session_state):
+        if key.startswith("data_") and key != "data_mode":
+            del st.session_state[key]
+
+
+mode = st.radio("Datos a consultar", ("Fuentes existentes", "Demostración sintética"), horizontal=True,
+                index=1 if demo_path(runtime.settings).is_file() else 0, key="data_mode", on_change=change_data_mode,
+                disabled="data_save" in st.session_state or "data_manifest" in st.session_state)
+demo_mode = mode == "Demostración sintética"
+if demo_mode:
+    st.info("Demostración sintética: todos los casos y etiquetas son artificiales. Las fuentes originales conservan su estado.")
+    if "data_view_result" not in st.session_state and "data_view_error" not in st.session_state:
+        start_task(runtime, "data_view", workspace.open_demo, token)
+
 for operation, label in (
     ("data_view", "Leyendo fuentes y comprobando grupos y calidad…"),
     ("data_save", "Protegiendo la edición y registrando su autorización…"),
@@ -394,7 +429,7 @@ if st.button("Actualizar inventario" if view else "Cargar inventario", type="pri
              disabled="data_view" in st.session_state or "data_save" in st.session_state, key="data_load"):
     st.session_state.pop("data_history_result", None)
     st.session_state.pop("data_terms_result", None)
-    start("data_view", partial(workspace.open, token))
+    start("data_view", partial(workspace.open_demo if demo_mode else workspace.open, token))
 if view is None:
     st.caption("Consulta las fuentes registradas con tu sesión del SOC.")
     st.stop()

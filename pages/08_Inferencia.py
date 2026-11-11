@@ -23,6 +23,8 @@ if workspace is None:
     st.error("El módulo de inferencia no está disponible.")
     st.stop()
 
+if "inf_mode" not in st.session_state and next(workspace.directory.glob("*/result.json"), None) is not None:
+    st.session_state["inf_mode"] = "Reporte existente"
 mode = st.radio("Reporte", ("Nuevo reporte", "Reporte existente"), horizontal=True, key="inf_mode")
 if mode == "Nuevo reporte":
     st.caption("La clasificación registra un reporte y activa su recorrido operativo. FastAPI aplica el contrato y la política de revisión.")

@@ -325,3 +325,41 @@ def test_inference_page_submit_existing_metrics_pending_and_permissions(inferenc
             assert private == {"other": "public"}
     finally:
         tasks.close()
+
+
+def test_saved_inference_opens_existing_reports_without_classifying_again(inference_lab, monkeypatch):
+    from datetime import timedelta, timezone
+    from time import monotonic
+    from streamlit.testing.v1 import AppTest
+    from src.data.catalog import DatasetCatalog
+    from src.inference.services import Session
+    from src.training.experiments import RunRegistry
+    from src.utils.streamlit_runtime import Runtime, _inventory
+    from src.utils.tasks import TaskRunner
+
+    lab = inference_lab
+    identifier = str(uuid4())
+    lab.workspace.submit(PAYLOAD["titulo"], PAYLOAD["descripcion"], identifier, lab.token)
+    calls_before = len(lab.state["calls"])
+    tasks = TaskRunner(2)
+    checked = monotonic()
+    monkeypatch.setattr("src.utils.streamlit_runtime.monotonic", lambda: checked)
+    runtime = Runtime(lab.workspace.settings, lab.api, DatasetCatalog(lab.workspace.settings, lab.api),
+        RunRegistry(lab.workspace.settings), tasks, _inventory, inference=lab.workspace)
+    monkeypatch.setattr("src.utils.streamlit_runtime.get_runtime", lambda: runtime)
+    try:
+        app = AppTest.from_file(str(PROJECT_ROOT / "pages/08_Inferencia.py"), default_timeout=60)
+        app.session_state["auth_session"] = Session(token=lab.token, user=lab.api.me(lab.token), checked_at=checked,
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1))
+        app.run()
+        if "inf_catalog" in app.session_state:
+            app.session_state["inf_catalog"].result(timeout=20)
+            app.run()
+        assert not app.exception
+        assert app.radio(key="inf_mode").value == "Reporte existente"
+        assert app.selectbox(key="inf_existing").value == identifier
+        assert len(lab.state["calls"]) == calls_before
+        app.radio(key="inf_mode").set_value("Nuevo reporte").run()
+        assert app.text_input(key="inf_title")
+    finally:
+        tasks.close()

@@ -185,17 +185,18 @@ def require_session(runtime: Runtime, permission: str = "read") -> Session | Non
         clear_private_state()
         st.warning("La sesión expiró. Inicia sesión nuevamente.")
         return None
-    if "identity_task_result" in st.session_state:
-        session = session.model_copy(update={"user": st.session_state.pop("identity_task_result"), "checked_at": monotonic()})
-        st.session_state["auth_session"] = session
-    if st.session_state.get("identity_task_error"):
-        clear_private_state()
-        st.warning("No se pudo validar tu sesión. Inicia sesión nuevamente.")
-        return None
     if monotonic() - session.checked_at >= runtime.settings.ui.session_check_seconds:
-        start_task(runtime, "identity_task", runtime.api.me, session.token)
-        poll_task(runtime, "identity_task", "Comprobando la vigencia de la sesión…")
-        return None
+        # Finish this bounded check in the current script run. Stopping and
+        # rerunning here discards the triggering click and Streamlit removes
+        # the page's widget state, resetting selections to their defaults.
+        try:
+            user = runtime.api.me(session.token)
+        except AnalyticsError:
+            clear_private_state()
+            st.warning("No se pudo validar tu sesión. Inicia sesión nuevamente.")
+            return None
+        session = session.model_copy(update={"user": user, "checked_at": monotonic()})
+        st.session_state["auth_session"] = session
     if not session.user.can(permission):
         st.warning("Tu rol no permite acceder a este módulo.")
         return None

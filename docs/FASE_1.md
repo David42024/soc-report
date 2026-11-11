@@ -11,6 +11,8 @@ El módulo **Datos del SOC** incorpora el inventario, la exploración, las revis
 
 ## Ejecución
 
+En **Datos a consultar → Demostración sintética** se dispone de 640 casos artificiales reproducibles (480 de desarrollo y 160 de prueba), con las diez categorías SOC, cuatro severidades y activos ficticios. Explorar, Catálogo, Calidad, Estadística y Manifiestos muestran esta cohorte por separado. En Manifiestos se descargan los casos y se guarda una versión identificada como sintética. Las etiquetas tienen procedencia de simulación y cero revisores humanos; la disponibilidad de esta prueba demostrativa no habilita la reserva VCDB real ni los experimentos supervisados reales. Los archivos generados quedan en `runs/phase1/demostracion/`, excluido de Git.
+
 Desde PowerShell, en la raíz del repositorio. Ejecuta los dos primeros comandos si necesitas arrancar el SOC y comprobar la configuración. Mantén Streamlit abierto en otra terminal para usar la interfaz.
 
 ~~~powershell

@@ -46,7 +46,9 @@ def test_page_uses_seal_confirmation_and_renders_audited_results(data_workspace,
         app.session_state["auth_session"] = Session(token=token, user=api.me(token), checked_at=checked_at,
                                                     expires_at=datetime.now(timezone.utc) + timedelta(days=1))
         app.run()
-        settle(app, "eval_catalog")
+        settle(app, "eval_catalog", "eval_result")
+        assert app.radio(key="eval_source").value == "sintetico"
+        app.radio(key="eval_source").set_value("real").run()
         assert any("Falta el archivo de Prueba" in item.value for item in app.warning)
         app.radio(key="eval_source").set_value("sintetico").run()
         settle(app, "eval_result")

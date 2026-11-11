@@ -210,9 +210,15 @@ catalog = st.session_state.get("eval_catalog_result")
 if catalog is None:
     st.stop()
 
-render_table(*readiness_table(catalog["readiness"]))
+if "eval_source" not in st.session_state:
+    available_sources = {row["source"] for row in catalog["evaluations"]}
+    st.session_state["eval_source"] = "sintetico" if "sintetico" in available_sources and "real" not in available_sources else "real"
 source = st.radio("Cohorte", ("real", "sintetico"), horizontal=True, key="eval_source",
                   format_func=lambda value: "Prueba real sellada" if value == "real" else "Prueba técnica sintética")
+if source == "real":
+    render_table(*readiness_table(catalog["readiness"]))
+else:
+    st.caption("Resultados de la prueba técnica sintética. Las referencias humanas reales conservan su estado independiente.")
 if session.user.can("write"):
     evaluation_form([row for row in catalog["selections"] if row["source"] == source], source, catalog["readiness"])
 evaluations = [row for row in catalog["evaluations"] if row["source"] == source]

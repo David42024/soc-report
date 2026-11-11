@@ -19,7 +19,7 @@ from src.inference.services import SocApi
 from src.reports.composition import (
     data_section, evaluation_section, explanation_section, operational_section, training_section,
 )
-from src.reports.exporters import export_all, render_figure, snapshot_digest, snapshot_payload
+from src.reports.exporters import ReportExport, export_all, render_figure, snapshot_digest, snapshot_payload
 from src.reports.scientific import ReportRequest, ReportSnapshot
 from src.training.runs import RunStore
 from src.utils.config import AnalyticsSettings
@@ -54,7 +54,58 @@ class ReportingWorkspace:
             "evaluations": [row for row in self.evaluations.list() if row["status"] == "completa"],
             "explanations": [{key: row[key] for key in ("run_id", "mode", "source")}
                              for row in self.explanations.records()],
+            "publications": self._publications(),
         }
+
+    def _publication_metadata(self, version: str) -> tuple[Path, dict]:
+        if not VERSION_ID.fullmatch(version):
+            raise AnalyticsError("Selecciona una versión publicada válida.")
+        directory = (self.directory / version).resolve()
+        try:
+            if not directory.is_relative_to(self.directory.resolve()):
+                raise ValueError
+            path = directory / "manifest.json"
+            if path.stat().st_size > self.settings.ui.max_json_bytes:
+                raise ValueError
+            metadata = json.loads(path.read_bytes())
+            if (metadata["content"]["run_id"] != version or
+                    metadata["content_sha256"] != content_hash(metadata["content"]) or
+                    not 1 <= len(metadata["files"]) <= 8):
+                raise ValueError
+            for entry in metadata["files"]:
+                target = (directory / entry["name"]).resolve()
+                if (Path(entry["name"]).name != entry["name"] or not target.is_relative_to(directory) or
+                        not 0 < entry["size"] <= self.settings.data.max_csv_bytes or target.stat().st_size != entry["size"]):
+                    raise ValueError
+            return directory, metadata
+        except (OSError, ValueError, TypeError, KeyError):
+            raise AnalyticsError("El informe publicado está incompleto o cambió. Revisa sus archivos y huellas.") from None
+
+    def _publications(self) -> list[dict]:
+        rows = []
+        for directory in sorted(self.directory.glob("*"), reverse=True):
+            if not VERSION_ID.fullmatch(directory.name):
+                continue
+            try:
+                _, metadata = self._publication_metadata(directory.name)
+                content = metadata["content"]
+                rows.append({"Versión": directory.name, "Fecha (UTC)": content["generated_at"],
+                             "Plantilla": content["request"]["template"], "Archivos": len(metadata["files"])})
+            except (AnalyticsError, KeyError, TypeError):
+                LOGGER.warning("Se omitió un informe publicado incompleto.")
+        return rows
+
+    def read_publication(self, version: str, token: SecretStr) -> dict:
+        self._authorize(token)
+        directory, metadata = self._publication_metadata(version)
+        outputs = []
+        for entry in metadata["files"]:
+            raw = (directory / entry["name"]).read_bytes()
+            if len(raw) != entry["size"] or sha256(raw).hexdigest() != entry["sha256"]:
+                raise AnalyticsError("Cambió la huella de un archivo publicado. Se canceló la descarga.")
+            outputs.append(ReportExport(entry["name"], entry["mime"], raw))
+        self.api.audit_event(token, "consultar_informes", run_id=version)
+        return {"run_id": version, "content_sha256": metadata["content_sha256"], "outputs": outputs}
 
     def _check_selection(self, request: ReportRequest) -> None:
         for selections in (request.experiments, request.evaluations, request.explanations):

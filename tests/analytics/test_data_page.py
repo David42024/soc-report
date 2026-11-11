@@ -1,5 +1,6 @@
 """Streamlit smoke tests for browsing, review and evidence generation."""
 from datetime import datetime, timedelta, timezone
+import json
 from time import monotonic
 
 import pytest
@@ -97,6 +98,31 @@ def test_data_page_requires_session_and_clears_expired_view(data_page):
     app.session_state["data_view_result"] = workspace.open(token)
     app.run()
     assert not app.exception and not app.dataframe and "data_view_result" not in app.session_state
+
+
+def test_complete_synthetic_demo_across_data_views(data_page):
+    app, workspace, token, _ = data_page
+    _sign_in(app, workspace, token)
+    app.run()
+    app.radio(key="data_mode").set_value("Demostración sintética").run()
+    _settle(app, "data_view")
+    assert len(app.session_state["data_view_result"].inventory.records()) == 640
+    for section in ("Explorar", "Catálogo", "Calidad", "Estadística", "Manifiestos"):
+        app.radio(key="data_section").set_value(section).run()
+        assert app.dataframe and not app.exception
+    status = app.dataframe[0].value
+    assert set(status["Prueba sintética"]) == {"Disponible"}
+    assert set(status["Casos de prueba con etiqueta"]) == {160}
+    assert set(status["Cobertura total (%)"]) == {100}
+    assert app.get("download_button")
+    app.button(key="data_make_manifest").click().run()
+    _settle(app, "data_manifest")
+    saved = app.session_state["data_manifest_result"]
+    _, payload = workspace.read_manifest(saved["run_id"], token)
+    assert json.loads(payload)["content"]["synthetic_demo"]["total_cases"] == 640
+    app.radio(key="data_mode").set_value("Fuentes existentes").run()
+    assert "data_view_result" not in app.session_state
+    assert not app.dataframe
 
 
 def test_read_only_role_sees_report_without_edit_or_manifest_actions(data_page):

@@ -7,6 +7,7 @@ import logging
 from pydantic import SecretStr, ValidationError
 
 from src.data.catalog import DatasetCatalog
+from src.data.demo import demo_inventory, is_demo
 from src.data.manifest import ManifestStore, development_snapshot, manifest_content
 from src.data.models import DataInventory, DataRecord, MetadataEdit
 from src.data.quality import Groups, Similarity, find_similar, group_records
@@ -63,7 +64,18 @@ class DataWorkspace:
         LOGGER.info("Inventario analítico consultado: %d fuentes", len(view.inventory.sources))
         return view
 
+    def open_demo(self, token: SecretStr) -> DataView:
+        actor = self._authorize(token)
+        view = self._view(demo_inventory(self.settings, create=actor.can("write")))
+        self.api.audit_event(token, "consultar_datos")
+        return view
+
     def _check_sources(self, original: DataInventory) -> None:
+        if is_demo(original):
+            current = demo_inventory(self.settings)
+            if original.input_fingerprint != current.input_fingerprint or original.privacy_sha256 != current.privacy_sha256:
+                raise DatasetError("Cambió la demostración o la política de privacidad. Actualiza el inventario.")
+            return
         if original.input_fingerprint != self.reader.fingerprint() or original.privacy_sha256 != load_policy().digest:
             raise DatasetError("Cambió una fuente, la configuración o la política de privacidad. Actualiza el inventario.")
 

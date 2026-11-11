@@ -131,6 +131,15 @@ def test_archived_results_export_in_three_formats_without_new_inference(reportin
     assert before == sha256(workspace.training.path(phase2).joinpath("result.json").read_bytes()).hexdigest()
     assert state["audit"][-1]["action"] == "generar_informe"
     assert comparison["run_id"] in serialized
+    publications = workspace.catalog(token)["publications"]
+    assert publications[0]["Versión"] == snapshot.run_id
+    archived = workspace.read_publication(snapshot.run_id, token)
+    assert [output.data for output in archived["outputs"]] == [output.data for output in outputs]
+    target = workspace.directory / snapshot.run_id / outputs[0].filename
+    original = target.read_bytes()
+    target.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+    with pytest.raises(AnalyticsError, match="huella"):
+        workspace.read_publication(snapshot.run_id, token)
 
 
 @pytest.mark.parametrize("template", tuple(TEMPLATES))

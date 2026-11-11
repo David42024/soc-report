@@ -20,6 +20,14 @@ Abre http://127.0.0.1:8502. Para acceder a las fuentes, inicia los servicios con
 
 ## Fase 1 · Datos del SOC
 
+Para poblar Streamlit con actividad de demostración, ejecuta `.venv/Scripts/python.exe -m scripts.seed_streamlit_demo`. El seeder agrega 120 reportes identificados como DEMO mediante la API local, 640 casos sintéticos completos por semilla y ejecuciones efectivas de los módulos: 12 entrenamientos, 8 optimizaciones, evaluaciones, explicaciones, manifiestos, verificaciones e informes. Los modelos se ejecutan localmente; los proveedores cloud no intervienen y los datasets originales conservan sus huellas.
+
+El progreso y los identificadores generados quedan en `runs/demo_activity/streamlit-demo-v1/progress.json`. El mismo comando continúa las etapas pendientes. En **Datos del SOC → Datos a consultar → Demostración sintética** se explora la cohorte artificial; las versiones de manifiesto muestran su naturaleza. La reserva real y sus revisiones humanas mantienen su estado.
+
+Los documentos generados se consultan en **Reportes científicos y operacionales → Histórico de informes publicados**. La preparación de sus descargas comprueba los permisos, el tamaño y la huella de cada archivo.
+
+Las evaluaciones de una misma configuración y cohorte se reutilizan. Los conteos de versiones corresponden a resultados únicos, mientras que las corridas y trials registran las ejecuciones efectivamente realizadas. Evaluación selecciona la cohorte sintética cuando es la única con resultados; Inferencia abre los reportes existentes cuando ya hay observaciones guardadas.
+
 En Streamlit, entra en **Datos del SOC → Cargar inventario** con una cuenta de Administrador, Analista o Gestor. Puedes explorar las ocho fuentes registradas, consultar calidad y estadísticas, y descargar las figuras a 600 DPI. Administrador y Analista pueden confirmar correcciones analíticas y guardar manifiestos versionados. Los archivos de origen y los reportes operativos se consultan en lectura. La metodología, la matriz de aceptación y las evidencias se documentan en [docs/FASE_1.md](docs/FASE_1.md).
 
 ## Fase 2 · Experimentación SOC

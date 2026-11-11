@@ -13,6 +13,7 @@ import re
 from pydantic import ValidationError
 
 from backend.report_input import ReportInput
+from src.data.demo import demo_summary, is_demo
 from src.data.models import DataInventory, DataRecord, SEVERITIES, TARGETS, TYPES, content_hash
 from src.data.quality import Groups, Similarity, quality_checks
 from src.data.revisions import operation_identity
@@ -27,6 +28,12 @@ VERSION_ID = re.compile(r"^\d{8}T\d{12}Z_[0-9a-f]{12}$")
 def holdout_status(inventory: DataInventory, groups: Groups) -> dict:
     """Derive test availability from the reviewed artifact and observed overlap."""
     observed = asdict(inventory.holdout)
+    if is_demo(inventory):
+        observed.update(test_ready_by_target=dict.fromkeys(TARGETS, False),
+            reviewed_counts_by_target=dict.fromkeys(TARGETS, {}), artifact_stat=None,
+            reasons=[], field_scope="Etiquetas sintéticas generadas. La revisión humana independiente no aplica a esta demostración.",
+            synthetic_demo=demo_summary(inventory))
+        return observed
     reasons = []
     if inventory.holdout.preparation_pending:
         reasons.append(f"{inventory.holdout.preparation_pending} decisiones de preparación pendientes.")
@@ -100,7 +107,7 @@ def manifest_content(inventory: DataInventory, groups: Groups, similarity: Simil
                         "label": label.values[0],
                         "possible_reserved_overlap": group in similarity.reserved_risk_groups,
                     })
-    return {
+    content = {
         "schema_version": 1, "phase": 1, "seed": settings.seed,
         "scope": "Inventario y candidatos por objetivo. Las asignaciones de Desarrollo y Validación corresponden a la fase siguiente.",
         "config": settings.data.model_dump(mode="json"),
@@ -126,6 +133,10 @@ def manifest_content(inventory: DataInventory, groups: Groups, similarity: Simil
             "candidates_by_target": eligible,
         },
     }
+    if is_demo(inventory):
+        content["synthetic_demo"] = demo_summary(inventory)
+        content["scope"] = "Demostración sintética reproducible. No habilita la prueba reservada real ni acredita revisión humana."
+    return content
 
 
 def development_snapshot(inventory: DataInventory, manifest: dict) -> list[dict]:
@@ -190,7 +201,9 @@ class ManifestStore:
             result = []
             for path in sorted(self.directory.glob("*/manifest.json"), reverse=True):
                 if path.resolve().is_relative_to(self.directory.resolve()) and VERSION_ID.fullmatch(path.parent.name):
-                    result.append({"Versión": path.parent.name, "Tamaño (bytes)": path.stat().st_size})
+                    envelope = json.loads(self.read(path.parent.name))
+                    result.append({"Versión": path.parent.name, "Tamaño (bytes)": path.stat().st_size,
+                                   "Naturaleza": "Sintética" if envelope["content"].get("synthetic_demo") else "Fuentes existentes"})
                     if len(result) == self.history_limit:
                         break
             return result
